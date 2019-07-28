@@ -67,3 +67,10 @@
     - Set the obj.key to undefined to delete the data from the filesystem
     
     obj.key = undefined
+    
+### TODO's
+
+    - Add IPFS or libP2P support
+    - Add encryption option
+    - Add access privileges
+    - Refactor
