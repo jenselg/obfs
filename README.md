@@ -51,6 +51,7 @@
     
     Functions:
     obj.key = (data) => { return data }
+    obj.key()
     
     Objects:
     obj.key = {}
