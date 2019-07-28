@@ -75,7 +75,9 @@
     
 ### TODO's
 
-    - Add IPFS or libP2P support
+    - Add IPFS or libP2P option
     - Add encryption option
+    - Add data replication option
+    - Add multiple paths option
     - Add access privileges
     - Refactor
