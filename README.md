@@ -10,23 +10,23 @@
 ### HOW TO USE
 
 ##### Create new instance:
-    
+
     var obj = new Obj(options)
-    
+
     Options:
-    
-    options.path = 'string' 
+
+    options.path = 'string'
     - base path where to store obj instance / folder
     - defaults to the user home directory
-    
+
     options.name = 'string'
     - name of the obj instance / folder, folder names end in .obj automatically
     - defaults to 'default'
-    
+
     options.encoding = 'string'
     - encoding used for data, see https://github.com/nodejs/node/blob/master/lib/buffer.js
     - defaults to 'utf8'
-    
+
 ##### Set data:
 
     - All data except for non-array objects and functions, are saved in a file in 'key.data' format
@@ -36,23 +36,23 @@
 
     String:
     obj.key = 'string'
-    
+
     Integer:
     obj.key = 12345
-    
+
     Float:
     obj.key = 1.2345
-    
+
     Array:
     obj.key = [1,2,3,4,5]
-    
+
     Boolean:
     obj.key = true
-    
+
     Functions:
     obj.key = (data) => { return data }
     obj.key()
-    
+
     Objects:
     obj.key = {}
     obj.key.nested = 'nested'
@@ -60,19 +60,19 @@
 ##### Get data:
 
     - Same as a regular Javascript object, returns the data on declare
-    
+
     obj.key = 'data' (returns 'data')
     obj.key (returns 'data')
-    
+
 ##### Delete / Update data:
 
     - Set the obj.key to undefined or other data to delete or replace the data stored in the filesystem
-    
+
     obj.key = undefined (folders / files deleted from filesystem, and returns undefined)
     obj.key = '' (key.data with '' value created and other files / folders with the same key name deleted, returns '')
     ...
 
-    
+
 ### TODO's
 
     - Add IPFS or libP2P option
