@@ -80,4 +80,6 @@
     - Add data replication option
     - Add multiple paths option
     - Add access privileges
+    - Add examples
+    - Add tests
     - Refactor
