@@ -1,7 +1,6 @@
 // Obj.js
 //
-// File-based object datastore system for Node.js.
-// Use Javascript objects to set or get data and Javascript functions in the filesystem.
+// File-based, object oriented datastore for Node.js
 //
 // By: Jensel Gatchalian
 // Github: https://github.com/jenselg/obj.js

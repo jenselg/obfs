@@ -1,17 +1,23 @@
 ### DESCRIPTION
 
-    File-based object datastore system for Node.js.
-    Use Javascript objects to set or get data and Javascript functions in the filesystem.
+    File-based, object oriented datastore for Node.js
 
     By: Jensel Gatchalian
     Github: https://github.com/jenselg/Obj.js
     License: MIT
 
+### INSTALLATION
+
+##### In your project directory:
+
+    npm install --save @jenselg/obj.js
+
 ### HOW TO USE
 
 ##### Create new instance:
 
-    var obj = new Obj(options)
+    const Obj = require('@jenselg/obj.js')
+    let obj = new Obj(options) // options object / argument is optional
 
     Options:
 
@@ -59,9 +65,9 @@
 
 ##### Get data:
 
-    - Same as a regular Javascript object, returns the data on declare
+    - Same as a regular Javascript variable / object
 
-    obj.key = 'data' // returns 'data'
+    obj.key = 'data'
     obj.key // returns 'data'
 
 ##### Delete / Update data:
@@ -77,9 +83,8 @@
 
     - Add IPFS or libP2P option
     - Add encryption option
-    - Add data replication option
-    - Add multiple paths option
-    - Add access privileges
+    - Add access privileges option
     - Add examples
     - Add tests
+    - Optimize
     - Refactor
