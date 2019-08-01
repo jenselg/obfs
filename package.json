@@ -1,4 +1,8 @@
 {
-  "name": "@jenselg/obj.js",
-  "version": "v0.0.1-alpha"
+  "name": "obj.js",
+  "version": "v0.0.1-alpha",
+  "main": "./obj.js"
+  "repository": "github:jenselg/obj.js",
+  "license": "MIT",
+  "keywords": ["object oriented", "database", "file system", "javascript"]
 }
