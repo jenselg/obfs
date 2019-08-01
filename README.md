@@ -61,15 +61,15 @@
 
     - Same as a regular Javascript object, returns the data on declare
 
-    obj.key = 'data' (returns 'data')
-    obj.key (returns 'data')
+    obj.key = 'data' // returns 'data'
+    obj.key // returns 'data'
 
 ##### Delete / Update data:
 
     - Set the obj.key to undefined or other data to delete or replace the data stored in the filesystem
 
-    obj.key = undefined (folders / files deleted from filesystem, and returns undefined)
-    obj.key = '' (key.data with '' value created and other files / folders with the same key name deleted, returns '')
+    obj.key = undefined // folders / files deleted from filesystem, and returns undefined
+    obj.key = '' // key.data with '' value created and other files / folders with the same key name deleted, returns ''
     ...
 
 
