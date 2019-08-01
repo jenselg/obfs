@@ -121,7 +121,7 @@ class Obj
 
             // write to fs
             fs.writeFileSync(path.resolve(childObj.path, valKey + '.js'), childJsContent)
-            childObj[valKey] = eval(fs.readFileSync(path.resolve(childObj.path, valKey + '.js')).toString(this.encoding))
+            childObj[valKey] = eval(childJsContent) //eval(fs.readFileSync(path.resolve(childObj.path, valKey + '.js')).toString(this.encoding))
           }
 
           // all other data
@@ -129,7 +129,7 @@ class Obj
           {
             // write to fs
             fs.writeFileSync(path.resolve(childObj.path, valKey + '.dat'), JSON.stringify(value[valKey]))
-            childObj[valKey] = JSON.parse(fs.readFileSync(path.resolve(childObj.path, valKey + '.dat')))
+            childObj[valKey] = value[valKey] //JSON.parse(fs.readFileSync(path.resolve(childObj.path, valKey + '.dat')))
           }
 
         })
@@ -147,7 +147,7 @@ class Obj
         // write to fs
         value = '' + value
         fs.writeFileSync(childJs, value)
-        output = eval(fs.readFileSync(childJs).toString(this.encoding))
+        output = eval(value) //eval(fs.readFileSync(childJs).toString(this.encoding))
       }
 
       // BASE VALUE LOGIC // all other data
@@ -159,7 +159,7 @@ class Obj
 
         // write to fs
         fs.writeFileSync(childData, JSON.stringify(value))
-        output = JSON.parse(fs.readFileSync(childData))
+        output = value //JSON.parse(fs.readFileSync(childData))
       }
 
       // BASE VALUE LOGIC // undefined; erase data
