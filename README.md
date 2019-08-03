@@ -1,18 +1,12 @@
-<div style="display: block; text-align:center;">
-  <img src="https://github.com/jenselg/Obj.js/raw/master/misc/obj.js-logo.png" alt="Obj.js-logo" style="width: 50%;" />
-</div>
+<p align="center">
+  <img src="https://github.com/jenselg/Obj.js/raw/master/misc/obj.js-logo.png" alt="Obj.js-logo" width="300" />
+</p>
 
-### DESCRIPTION
-
-    File-based, object-oriented data store for Node.js
-
-    By: Jensel Gatchalian
-    Github: https://github.com/jenselg/Obj.js
-    License: MIT
+<h2 align="center">File-based, object-oriented data store for Node.js</h2>
 
 ### INSTALLATION
 
-##### In your project directory:
+    In your project directory:
 
     npm install --save @jenselg/obj.js
 
@@ -84,7 +78,6 @@
     obj.key = '' // key.data with '' value created and other files / folders with the same key name deleted, returns ''
     ...
 
-
 ### TODO's
 
     - Add IPFS or libP2P option
@@ -94,3 +87,9 @@
     - Add tests
     - Optimize
     - Refactor
+
+### CREDITS
+
+    By: Jensel Gatchalian
+    Github: https://github.com/jenselg/Obj.js
+    License: MIT
