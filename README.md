@@ -1,4 +1,6 @@
-![Obj.js Logo](https://github.com/jenselg/Obj.js/raw/master/misc/obj.js-logo.png)
+<div style="display: block; text-align:center;">
+  <img src="https://github.com/jenselg/Obj.js/raw/master/misc/obj.js-logo.png" alt="Obj.js-logo" style="width: 50%;" />
+</div>
 
 ### DESCRIPTION
 
