@@ -1,3 +1,5 @@
+![Obj.js Logo](https://github.com/jenselg/Obj.js/raw/master/misc/obj.js-logo.png)
+
 ### DESCRIPTION
 
     File-based, object-oriented data store for Node.js
