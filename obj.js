@@ -1,6 +1,6 @@
 // Obj.js
 //
-// File-based, object oriented datastore for Node.js
+// File-based, object-oriented data store for Node.js
 //
 // By: Jensel Gatchalian
 // Github: https://github.com/jenselg/obj.js

@@ -1,10 +1,10 @@
 {
   "name": "@jenselg/obj.js",
-  "description": "File-based, object oriented datastore for Node.js",
-  "version": "v0.0.5",
+  "description": "File-based, object-oriented data store for Node.js",
+  "version": "v0.0.6",
   "author": "Jensel Gatchalian <jensel.gatchalian@gmail.com>",
   "main": "./obj.js",
-  "repository": "github:jenselg/obj.js",
+  "repository": "github:jenselg/Obj.js",
   "license": "MIT",
-  "keywords": ["object oriented", "database", "datastore", "file system", "javascript"]
+  "keywords": ["object oriented", "database", "data store", "file system", "javascript", "node.js", "fs", "js", "obj.js"]
 }

@@ -1,0 +1,15 @@
+{
+  "name": "nested-data-replication",
+  "version": "1.0.0",
+  "description": "",
+  "main": "run.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jensel Gatchalian <jensel.gatchalian@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@jenselg/obj.js": "0.0.6",
+    "faker": "^4.1.0"
+  }
+}

@@ -1,6 +1,6 @@
 ### DESCRIPTION
 
-    File-based, object oriented datastore for Node.js
+    File-based, object-oriented data store for Node.js
 
     By: Jensel Gatchalian
     Github: https://github.com/jenselg/Obj.js
@@ -17,17 +17,19 @@
 ##### Create new instance:
 
     const Obj = require('@jenselg/obj.js')
-    let obj = new Obj(options) // options object / argument is optional
+    let obj = new Obj(options) // options argument is optional - see below
 
     Options:
 
-    options.path = 'string'
-    - base path where to store obj instance / folder
-    - defaults to the user home directory
+    { name: 'data', path: __dirname } // This creates a data.obj folder inside the project folder
 
     options.name = 'string'
     - name of the obj instance / folder, folder names end in .obj automatically
     - defaults to 'default'
+
+    options.path = 'string'
+    - base path where to store obj instance / folder
+    - defaults to the user home directory
 
     options.encoding = 'string'
     - encoding used for data, see https://github.com/nodejs/node/blob/master/lib/buffer.js
