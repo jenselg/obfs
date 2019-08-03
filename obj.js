@@ -19,7 +19,7 @@ class Obj
     const path = require('path')
 
     // other variables
-    let handler, getData, setData, delData
+    let handler, getData, setData, cloneData, delData
 
     // get data from directories using paths, return object
     getData = (parent, child) =>
@@ -71,7 +71,7 @@ class Obj
     { // START setData
 
       // variables
-      let output, childDir, childJs, childJsContent, childData, childObj, childId
+      let output, childDir, childJs, childData, childObj, childId
       childDir = path.resolve(parent.path, child)
       childJs = path.resolve(parent.path, child + '.js')
       childData = path.resolve(parent.path, child + '.dat')
@@ -80,27 +80,30 @@ class Obj
       // BASE VALUE LOGIC // object -> directory
       if (typeof(value) === 'object' && !Array.isArray(value))
       {
-        // variables
+        // init child object
         childObj = {}
-        childObj.path = childDir
-        value.path = childObj.path
 
         // create directory and .obj
-        if (!fs.existsSync(childObj.path))
+        if (!fs.existsSync(childDir))
         {
-          fs.mkdirSync(childObj.path)
-          fs.writeFileSync(path.resolve(childObj.path, '.obj'), childObj.path)
+          fs.mkdirSync(childDir)
+          fs.writeFileSync(path.resolve(childDir, '.obj'), childDir)
         }
-        else if (!fs.existsSync(path.resolve(childObj.path, '.obj')))
+        else if (!fs.existsSync(path.resolve(childDir, '.obj')))
         {
-          fs.writeFileSync(path.resolve(childObj.path, '.obj'), childObj.path)
+          fs.writeFileSync(path.resolve(childDir, '.obj'), childDir)
         }
         else
         {
-          delData(childObj.path)
-          fs.mkdirSync(childObj.path)
-          fs.writeFileSync(path.resolve(childObj.path, '.obj'), childObj.path)
+          delData(childDir)
+          fs.mkdirSync(childDir)
+          fs.writeFileSync(path.resolve(childDir, '.obj'), childDir)
         }
+
+        // set path to value and child object
+        value = cloneData(value)
+        childObj.path = childDir
+        value.path = childDir
 
         // iterate through object keys
         Object.keys(value).forEach((valKey) =>
@@ -115,20 +118,25 @@ class Obj
           // js function; () => {}
           else if (typeof(value[valKey]) === 'function')
           {
-            // set fn as string
-            childJsContent = '' + value[valKey]
-
+            // set path and content
+            let childFilePath = path.resolve(childDir, valKey + '.js')
+            let childJsContent = '' + value[valKey]
             // write to fs
-            fs.writeFileSync(path.resolve(childObj.path, valKey + '.js'), childJsContent)
-            childObj[valKey] = eval(childJsContent) //eval(fs.readFileSync(path.resolve(childObj.path, valKey + '.js')).toString(this.encoding))
+            fs.writeFileSync(childFilePath, childJsContent)
+            // set to value
+            childObj[valKey] = eval(childJsContent)
           }
 
           // all other data
           else if (typeof(value[valKey]) !== 'undefined' && valKey !== 'path')
           {
+            // set path and content
+            let childFilePath = path.resolve(childDir, valKey + '.dat')
+            let childDataContent = JSON.stringify(value[valKey])
             // write to fs
-            fs.writeFileSync(path.resolve(childObj.path, valKey + '.dat'), JSON.stringify(value[valKey]))
-            childObj[valKey] = value[valKey] //JSON.parse(fs.readFileSync(path.resolve(childObj.path, valKey + '.dat')))
+            fs.writeFileSync(childFilePath, childDataContent)
+            // set to value
+            childObj[valKey] = JSON.parse(childDataContent)
           }
 
         })
@@ -139,26 +147,28 @@ class Obj
       // BASE VALUE LOGIC // js function; () => {}
       else if (typeof(value) === 'function')
       {
+
         // delete conflicting keys
         if (fs.existsSync(childData)) { fs.unlinkSync(childData) }
         else if (fs.existsSync(childDir)) { delData(childDir) }
-
         // write to fs
         value = '' + value
         fs.writeFileSync(childJs, value)
-        output = eval(value) //eval(fs.readFileSync(childJs).toString(this.encoding))
+        output = eval(value)
+
       }
 
       // BASE VALUE LOGIC // all other data
-      else if (typeof(value) !== 'undefined')
+      else if (typeof(value) !== 'undefined' && value !== 'path')
       {
+
         // delete conflicting keys
         if (fs.existsSync(childJs)) { fs.unlinkSync(childJs) }
         else if (fs.existsSync(childDir)) { delData(childDir) }
-
         // write to fs
         fs.writeFileSync(childData, JSON.stringify(value))
-        output = value //JSON.parse(fs.readFileSync(childData))
+        output = value
+
       }
 
       // BASE VALUE LOGIC // undefined; erase data
@@ -173,6 +183,18 @@ class Obj
       return output
 
     } // END setData
+
+    cloneData = (object) =>
+    { // START cloneData
+      let keys = Object.keys(object)
+      let newObject = {}
+      keys.forEach((key) =>
+      {
+        newObject[key] = object[key]
+      })
+      return newObject
+
+    } // END cloneData
 
     delData = (arg) =>
     { // START delData
@@ -248,7 +270,10 @@ class Obj
     this.encoding = args.encoding ? args.encoding : 'utf8'
 
     // initialize
-    if (!fs.existsSync(this.path, '.obj')) { fs.writeFileSync(path.resolve(this.path, '.obj'), this.path) }
+    if (!fs.existsSync(this.path, '.obj'))
+    {
+      fs.writeFileSync(path.resolve(this.path, '.obj'), this.path)
+    }
     return new Proxy(this, handler)
 
   }
