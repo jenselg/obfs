@@ -18,7 +18,7 @@ class Obj
     const fs = require('fs')
     const path = require('path')
 
-    // other variables
+    // fn variables
     let handler, getData, setData, cloneData, delData
 
     // get data from directories using paths, return object
@@ -118,25 +118,19 @@ class Obj
           // js function; () => {}
           else if (typeof(value[valKey]) === 'function')
           {
-            // set path and content
-            let childFilePath = path.resolve(childDir, valKey + '.js')
-            let childJsContent = '' + value[valKey]
             // write to fs
-            fs.writeFileSync(childFilePath, childJsContent)
+            fs.writeFileSync(path.resolve(childDir, valKey + '.js'), '' + value[valKey])
             // set to value
-            childObj[valKey] = eval(childJsContent)
+            childObj[valKey] = value[valKey]
           }
 
           // all other data
           else if (typeof(value[valKey]) !== 'undefined' && valKey !== 'path')
           {
-            // set path and content
-            let childFilePath = path.resolve(childDir, valKey + '.dat')
-            let childDataContent = JSON.stringify(value[valKey])
             // write to fs
-            fs.writeFileSync(childFilePath, childDataContent)
+            fs.writeFileSync(path.resolve(childDir, valKey + '.dat'), JSON.stringify(value[valKey]))
             // set to value
-            childObj[valKey] = JSON.parse(childDataContent)
+            childObj[valKey] = value[valKey]
           }
 
         })
@@ -152,9 +146,8 @@ class Obj
         if (fs.existsSync(childData)) { fs.unlinkSync(childData) }
         else if (fs.existsSync(childDir)) { delData(childDir) }
         // write to fs
-        value = '' + value
-        fs.writeFileSync(childJs, value)
-        output = eval(value)
+        fs.writeFileSync(childJs, '' + value)
+        output = value
 
       }
 
@@ -270,7 +263,7 @@ class Obj
     this.encoding = args.encoding ? args.encoding : 'utf8'
 
     // initialize
-    if (!fs.existsSync(this.path, '.obj'))
+    if (!fs.existsSync(path.resolve(this.path, '.obj')))
     {
       fs.writeFileSync(path.resolve(this.path, '.obj'), this.path)
     }
