@@ -92,4 +92,5 @@
 
     By: Jensel Gatchalian
     Github: https://github.com/jenselg/Obj.js
+    NPM: https://www.npmjs.com/package/@jenselg/obj.js
     License: MIT
