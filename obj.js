@@ -19,16 +19,20 @@ class Obj
     const path = require('path')
 
     // fn variables
-    let handler, getData, setData, cloneData, delData
+    let handler, getData, setData, writeData, readData, cloneData, delData
+
+
 
     // get data from directories using paths, return object
     getData = (parent, child) =>
     { // START getData
       if (typeof(child) !== 'symbol')
       {
+
       // variables
-      let output, files, childDir, childJs, childData, childObj, childId
+      let output, files, childDir, childJs, childData, childObj, childId, childDirId
       childDir = path.resolve(parent.path, child)
+      childDirId = path.resolve(parent.path, child, '.obj')
       childJs = path.resolve(parent.path, child + '.js')
       childData = path.resolve(parent.path, child + '.dat')
       childId = path.resolve(parent.path, '.obj')
@@ -36,29 +40,37 @@ class Obj
       // directory
       if (fs.existsSync(childDir))
       {
+
         childObj = {}
         childObj.path = childDir
+
         files = fs.readdirSync(childDir, { encoding: this.encoding })
         files.forEach((file) =>
         {
           // directory
-          if (fs.lstatSync(path.resolve(childDir, file)).isDirectory() && fs.existsSync(path.resolve(childDir, file, '.obj'))) { childObj[file] = getData(childObj, file) }
+          if (fs.lstatSync(path.resolve(childDir, file)).isDirectory() && fs.existsSync(path.resolve(childDir, file, '.obj')))
+          { childObj[file] = getData(childObj, file) }
+
           // function
-          else if (file.endsWith('.js')) { childObj[file.split('.')[0]] = eval(fs.readFileSync(path.resolve(childDir, file)).toString(this.encoding)) }
+          else if (file.endsWith('.js'))
+          { childObj[file.split('.')[0]] = readData(path.resolve(childDir, file)) }
+
           // data
-          else if (file.endsWith('.dat')) { childObj[file.split('.')[0]] = JSON.parse(fs.readFileSync(path.resolve(childDir, file))) }
+          else if (file.endsWith('.dat'))
+          { childObj[file.split('.')[0]] = readData(path.resolve(childDir, file)) }
+
         })
         output = new Proxy(childObj, handler)
       }
 
       // function
-      else if (fs.existsSync(childJs)) { output = eval(fs.readFileSync(childJs).toString(this.encoding)) }
+      else if (fs.existsSync(childJs)) { output = readData(childJs) }
 
       // data
-      else if (fs.existsSync(childData)) { output = JSON.parse(fs.readFileSync(childData)) }
+      else if (fs.existsSync(childData)) { output = readData(childData) }
 
       // path
-      else if (child === 'path') { output = fs.readFileSync(childId).toString(this.encoding) }
+      else if (child === 'path') { output = readData(childId) }
 
       // return final output
       return output
@@ -119,7 +131,7 @@ class Obj
           else if (typeof(value[valKey]) === 'function')
           {
             // write to fs
-            fs.writeFileSync(path.resolve(childDir, valKey + '.js'), '' + value[valKey])
+            writeData(path.resolve(childDir, valKey + '.js'), '' + value[valKey])
             // set to value
             childObj[valKey] = value[valKey]
           }
@@ -128,7 +140,7 @@ class Obj
           else if (typeof(value[valKey]) !== 'undefined' && valKey !== 'path')
           {
             // write to fs
-            fs.writeFileSync(path.resolve(childDir, valKey + '.dat'), JSON.stringify(value[valKey]))
+            writeData(path.resolve(childDir, valKey + '.dat'), JSON.stringify(value[valKey]))
             // set to value
             childObj[valKey] = value[valKey]
           }
@@ -146,7 +158,7 @@ class Obj
         if (fs.existsSync(childData)) { fs.unlinkSync(childData) }
         else if (fs.existsSync(childDir)) { delData(childDir) }
         // write to fs
-        fs.writeFileSync(childJs, '' + value)
+        writeData(childJs, '' + value)
         output = value
 
       }
@@ -159,7 +171,7 @@ class Obj
         if (fs.existsSync(childJs)) { fs.unlinkSync(childJs) }
         else if (fs.existsSync(childDir)) { delData(childDir) }
         // write to fs
-        fs.writeFileSync(childData, JSON.stringify(value))
+        writeData(childData, JSON.stringify(value))
         output = value
 
       }
@@ -176,6 +188,39 @@ class Obj
       return output
 
     } // END setData
+
+    writeData = (dataPath, dataContent) =>
+    { // START writeData
+      if (this.async)
+      {
+        fs.writeFile(dataPath, dataContent, (err) => { if (err) throw err })
+      }
+      else
+      {
+        fs.writeFileSync(dataPath, dataContent)
+      }
+    } // END writeData
+
+    readData = (dataPath) =>
+    { // START readData
+
+      // async read - WIP
+      if (this.async)
+      {
+        fs.readFile(dataPath, (err, data) =>
+        {
+          return data
+        })
+      }
+
+      // sync read
+      else
+      {
+        if (dataPath.endsWith('.js')) return eval(fs.readFileSync(dataPath, this.encoding))
+        else if (dataPath.endsWith('.dat')) return JSON.parse(fs.readFileSync(dataPath, this.encoding))
+        else return undefined
+      }
+    } // END readData
 
     cloneData = (object) =>
     { // START cloneData
@@ -195,7 +240,7 @@ class Obj
       if (fs.existsSync(arg))
       {
         fs.readdirSync(arg).forEach((file, index) => {
-          var curPath = path.resolve(arg, file)
+          let curPath = path.resolve(arg, file)
           if (fs.lstatSync(curPath).isDirectory())
           { // recurse
             delData(curPath)
@@ -210,7 +255,7 @@ class Obj
 
     } // end delData
 
-    // START proxy handler
+
 
     // handler function object
     handler = {}
@@ -222,6 +267,7 @@ class Obj
       return getData(target, key)
     } // END handler.get
 
+
     // capture SETs
     handler.set = (target, key, value) =>
     { // START handler.set
@@ -230,7 +276,7 @@ class Obj
       target[key] = setData(target, key, value)
     } // END handler.set
 
-    // END proxy handler
+
 
     // use custom path
     if (args.path)
@@ -248,19 +294,22 @@ class Obj
     // use custom obj name
     if (args.name)
     {
-      this.path = path.resolve(this.path, args.name + '.obj')
+      this.path = path.resolve(this.path, args.name)
       if (!fs.existsSync(this.path)) { fs.mkdirSync(this.path) }
     }
 
     // use default obj name
     else
     {
-      this.path = path.resolve(this.path, 'default.obj')
+      this.path = path.resolve(this.path, 'data')
       if (!fs.existsSync(this.path)) { fs.mkdirSync(this.path) }
     }
 
     // file encoding
     this.encoding = args.encoding ? args.encoding : 'utf8'
+
+    // async read/write
+    this.async = args.async ? args.async : false
 
     // initialize
     if (!fs.existsSync(path.resolve(this.path, '.obj')))

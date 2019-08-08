@@ -33,6 +33,10 @@
     - encoding used for data, see https://github.com/nodejs/node/blob/master/lib/buffer.js
     - defaults to 'utf8'
 
+    options.async = boolean
+    - set whether read/write operations are run asynchronously or synchronously
+    - defaults to false
+
 ##### Set data:
 
     - All data except for non-array objects and functions, are saved in a file in 'key.data' format
