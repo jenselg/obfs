@@ -73,6 +73,7 @@ class Obj
       else if (child === 'path') { output = readData(childId) }
 
       // return final output
+      // return output
       return output
 
       }
@@ -191,35 +192,38 @@ class Obj
 
     writeData = (dataPath, dataContent) =>
     { // START writeData
+
       if (this.async)
       {
         fs.writeFile(dataPath, dataContent, (err) => { if (err) throw err })
       }
+
       else
       {
         fs.writeFileSync(dataPath, dataContent)
       }
+
     } // END writeData
 
     readData = (dataPath) =>
     { // START readData
-
-      // async read - WIP
+      let output
       if (this.async)
       {
-        fs.readFile(dataPath, (err, data) =>
+        try
         {
-          return data
-        })
+          if (dataPath.endsWith('.js')) output = eval(fs.readFileSync(dataPath, this.encoding))
+          else if (dataPath.endsWith('.dat')) output = JSON.parse(fs.readFileSync(dataPath, this.encoding))
+          else output = undefined
+        } catch (err) { output = undefined }
       }
-
-      // sync read
       else
       {
-        if (dataPath.endsWith('.js')) return eval(fs.readFileSync(dataPath, this.encoding))
-        else if (dataPath.endsWith('.dat')) return JSON.parse(fs.readFileSync(dataPath, this.encoding))
-        else return undefined
+        if (dataPath.endsWith('.js')) output = eval(fs.readFileSync(dataPath, this.encoding))
+        else if (dataPath.endsWith('.dat')) output = JSON.parse(fs.readFileSync(dataPath, this.encoding))
+        else output = undefined
       }
+      return output
     } // END readData
 
     cloneData = (object) =>
@@ -264,7 +268,21 @@ class Obj
     handler.get = (target, key) =>
     { // START handler.get
       // NOTES: return the contents of target[key] by reading from folder/files, and if it's a folder return a new proxy
-      return getData(target, key)
+      switch (this.permissions)
+      {
+        case 'r':
+        case 'ro':
+          return getData(target, key)
+          break
+        case 'w':
+        case 'wo':
+          break
+        case 'rw':
+          return getData(target, key)
+          break
+        default:
+          throw new Error('Invalid permission set for Obj.js instance!')
+      }
     } // END handler.get
 
 
@@ -273,7 +291,24 @@ class Obj
     { // START handler.set
       // NOTES: value can be obj, fn, or everything else, setData should parse that input, create folders/files, and return the same with value.path set
       // edit 'value' properties here to change the data
-      target[key] = setData(target, key, value)
+      switch (this.permissions)
+      {
+        case 'r':
+        case 'ro':
+          break
+        case 'w':
+        case 'wo':
+          target[key] = setData(target, key, value)
+          break
+        case 'rw':
+          target[key] = setData(target, key, value)
+          break
+        default:
+          throw new Error('Invalid permission set for Obj.js instance!')
+      }
+
+      return true
+
     } // END handler.set
 
 
@@ -310,6 +345,9 @@ class Obj
 
     // async read/write
     this.async = args.async ? args.async : false
+
+    // permissions
+    this.permissions = args.permissions ? args.permissions : 'rw'
 
     // initialize
     if (!fs.existsSync(path.resolve(this.path, '.obj')))
