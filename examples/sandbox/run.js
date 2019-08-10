@@ -18,16 +18,20 @@ console.log(obj)
 // obj.nested.func()
 //
 console.log('\n SET:')
-//console.log(obj.string = 'testasyncwrite')
+console.log(obj.string = {somedata: 'somedata', somefn: () => { console.log('test string inside fn') }})
 
 console.log('\n GET:')
 //console.log(obj)
 console.log(obj.string)
-obj.nums = {}
-console.time('simple write')
-for (i=0;i<=1000;i++)
-{
-  console.log(`${i}:`)
-  console.log(obj.nums[i] = 'stringdata')
-}
-console.timeEnd('simple write')
+// obj.string.somefn.then((data) =>
+// {
+//   data()
+// })
+// obj.nums = {}
+// console.time('simple write')
+// for (i=0;i<=1000;i++)
+// {
+//   console.log(`${i}:`)
+//   console.log(obj.nums[i] = 'stringdata')
+// }
+// console.timeEnd('simple write')

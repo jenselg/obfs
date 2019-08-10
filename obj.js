@@ -212,16 +212,46 @@ class Obj
       {
         try
         {
-          if (dataPath.endsWith('.js')) output = eval(fs.readFileSync(dataPath, this.encoding))
-          else if (dataPath.endsWith('.dat')) output = JSON.parse(fs.readFileSync(dataPath, this.encoding))
-          else output = undefined
+          if (dataPath.endsWith('.js'))
+          {
+            output = new Promise((resolve, reject) =>
+            {
+              fs.readFile(dataPath, this.encoding, (err, data) =>
+              {
+                if (err) reject (err)
+                resolve(eval(data))
+              })
+            })
+          }
+          else if (dataPath.endsWith('.dat'))
+          {
+            output = new Promise((resolve, reject) =>
+            {
+              fs.readFile(dataPath, this.encoding, (err, data) =>
+              {
+                if (err) reject (err)
+                resolve(JSON.parse(data))
+              })
+            })
+          }
+          else
+          {
+            output = new Promise((resolve, reject) =>
+            {
+              fs.readFile(dataPath, this.encoding, (err, data) =>
+              {
+                if (err) reject (err)
+                resolve(data)
+              })
+            })
+          }
         } catch (err) { output = undefined }
       }
       else
       {
         if (dataPath.endsWith('.js')) output = eval(fs.readFileSync(dataPath, this.encoding))
         else if (dataPath.endsWith('.dat')) output = JSON.parse(fs.readFileSync(dataPath, this.encoding))
-        else output = undefined
+        else output = fs.readFileSync(dataPath, this.encoding)
       }
       return output
     } // END readData
@@ -281,7 +311,7 @@ class Obj
           return getData(target, key)
           break
         default:
-          throw new Error('Invalid permission set for Obj.js instance!')
+          throw new Error('Invalid permission set for Obj.js instance. Valid permissions: r, ro, w, wo, rw')
       }
     } // END handler.get
 
@@ -304,7 +334,7 @@ class Obj
           target[key] = setData(target, key, value)
           break
         default:
-          throw new Error('Invalid permission set for Obj.js instance!')
+          throw new Error('Invalid permission set for Obj.js instance. Valid permissions: r, ro, w, wo, rw')
       }
 
       return true
