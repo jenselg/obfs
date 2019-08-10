@@ -1,6 +1,6 @@
 const Obj = require('../../obj.js')
 //const Obj = require('@jenselg/obj.js')
-let obj = new Obj({ path: __dirname, name: 'data', async: false, permissions: 'rw' })
+let obj = new Obj({path: __dirname, async: true, permissions: 'rw' })
 
 //console.log(obj)
 //
@@ -18,15 +18,20 @@ console.log(obj)
 // obj.nested.func()
 //
 console.log('\n SET:')
-console.log(obj.string = {somedata: 'somedata', somefn: () => { console.log('test string inside fn') }})
+console.log(obj.string = {nested: {nestedstr: 'str'},somedata: 'somedata', somefn: () => { console.log('test string inside fn') }})
 
 console.log('\n GET:')
 //console.log(obj)
 console.log(obj.string)
-// obj.string.somefn.then((data) =>
-// {
-//   data()
-// })
+obj.string.then((data) =>
+{
+  console.log(data)
+  data.nested.then((dataN) =>
+  {
+    console.log(dataN.nestedstr.then((dataR) => {console.log(dataR)}))
+  })
+})
+
 // obj.nums = {}
 // console.time('simple write')
 // for (i=0;i<=1000;i++)

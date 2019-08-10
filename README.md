@@ -17,17 +17,17 @@
     const Obj = require('@jenselg/obj.js')
     let obj = new Obj(options) // options argument is optional - see below
 
-    Options:
+##### Instance options:
 
-    { name: 'data', path: __dirname } // This creates a data.obj folder inside the project folder
+    { name: 'obj', path: __dirname } // This creates a folder named 'obj' inside the project folder, containing a .obj file containing the full path
 
     options.name = 'string'
-    - name of the obj instance / folder, folder names end in .obj automatically
-    - defaults to 'default'
+    - name of the obj instance / folder
+    - defaults to 'obj'
 
     options.path = 'string'
     - base path where to store obj instance / folder
-    - defaults to the user home directory
+    - defaults to user home directory
 
     options.encoding = 'string'
     - encoding used for data, see https://github.com/nodejs/node/blob/master/lib/buffer.js
@@ -37,9 +37,17 @@
     - set whether read/write operations are run asynchronously or synchronously
     - defaults to false
 
+    options.permissions = 'string'
+    - set read/write permissions for obj instance
+    - available permissions: 'r', 'ro', 'w', 'wo', 'rw'
+    - read only: 'r' or 'ro'
+    - write only: 'w' or 'wo'
+    - read and write: 'rw'
+    - defaults to 'rw'
+
 ##### Set data:
 
-    - All data except for non-array objects and functions, are saved in a file in 'key.data' format
+    - All data except for non-array objects and functions, are saved in a file in 'key.dat' format
     - Functions are saved in a file in 'key.js' format
     - Non-array objects are treated and created as folders, and identified with a .obj file containing the full path
     - Objects inside arrays are treated as-is and not as folders
@@ -69,14 +77,15 @@
 
 ##### Get data:
 
-    - Same as a regular Javascript variable / object
+    - synchronously:
+    console.log(obj.key)
 
-    obj.key = 'data'
-    obj.key // returns 'data'
+    - asynchronously:
+    obj.key.then((value) => { console.log(value) })
 
-##### Delete / Update data:
+##### Delete / update data:
 
-    - Set the obj.key to undefined or other data to delete or replace the data stored in the filesystem
+    - Set the obj.key to undefined, null, or set to other data to delete or replace the data stored in the filesystem
 
     obj.key = undefined // folders / files deleted from filesystem, and returns undefined
     obj.key = '' // key.data with '' value created and other files / folders with the same key name deleted, returns ''
@@ -86,7 +95,6 @@
 
     - Add IPFS or libP2P option
     - Add encryption option
-    - Add access privileges option
     - Add examples
     - Add tests
     - Optimize

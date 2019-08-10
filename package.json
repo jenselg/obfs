@@ -1,7 +1,7 @@
 {
   "name": "@jenselg/obj.js",
   "description": "File-based, object-oriented data store for Node.js",
-  "version": "v0.0.6",
+  "version": "v0.0.7",
   "author": "Jensel Gatchalian <jensel.gatchalian@gmail.com>",
   "main": "./obj.js",
   "repository": "github:jenselg/Obj.js",

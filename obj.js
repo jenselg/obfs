@@ -60,7 +60,19 @@ class Obj
           { childObj[file.split('.')[0]] = readData(path.resolve(childDir, file)) }
 
         })
-        output = new Proxy(childObj, handler)
+
+        if (this.async)
+        {
+          output = new Promise((resolve, reject) =>
+          {
+            resolve(new Proxy(childObj, handler))
+          })
+        }
+        else
+        {
+          output = new Proxy(childObj, handler)
+        }
+
       }
 
       // function
@@ -178,7 +190,7 @@ class Obj
       }
 
       // BASE VALUE LOGIC // undefined; erase data
-      else if (typeof(value) === 'undefined')
+      else if (typeof(value) === 'undefined' || value === null)
       {
         if (fs.existsSync(childDir)) { delData(childDir), output = undefined }
         else if (fs.existsSync(childJs)) { fs.unlinkSync(childJs), output = undefined }
@@ -353,7 +365,7 @@ class Obj
     // use home path
     else
     {
-      this.path = path.resolve(os.homedir())
+      this.path = os.homedir()
     }
 
     // use custom obj name
@@ -366,7 +378,7 @@ class Obj
     // use default obj name
     else
     {
-      this.path = path.resolve(this.path, 'data')
+      this.path = path.resolve(this.path, 'obj')
       if (!fs.existsSync(this.path)) { fs.mkdirSync(this.path) }
     }
 
