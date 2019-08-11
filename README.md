@@ -19,6 +19,7 @@
 
 ##### Instance options:
 
+    Example:
     { name: 'obj', path: __dirname } // This creates a folder named 'obj' inside the project folder, containing a .obj file containing the full path
 
     options.name = 'string'
@@ -77,11 +78,11 @@
 
 ##### Get data:
 
-    - synchronously:
+    Synchronously:
     console.log(obj.key)
 
-    - asynchronously:
-    obj.key.then((value) => { console.log(value) })
+    Asynchronously:
+    obj.key.then((value) => { console.log(value) }) // async must be set to true in instance options
 
 ##### Delete / update data:
 

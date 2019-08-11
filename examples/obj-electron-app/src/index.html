@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+    <link rel="stylesheet" href="index.css">
+  </head>
+  <body>
+    <h1>Electron.js 💖 Obj.js!</h1>
+    <p>Boilerplate Electron.js application using Obj.js as the datastore.</p>
+    <button onclick="counterWrite()">Click me to increase counter!</button><br/><br/>
+    <button onclick="counterRead()">Click me to read count!</button><br/><br/>
+    <small>See console for the output.</small>
+  </body>
+  <script>
+
+    // Require ipcRenderer
+    const ipc = require('electron').ipcRenderer
+
+    // Declare count variable
+    let count
+
+    // Counter functions
+    let counterWrite = () =>
+    {
+      count += 1
+      ipc.send('write', {key: 'count', value: count})
+    }
+    let counterRead = () =>
+    {
+      ipc.send('read', 'count')
+    }
+
+    // IPC events
+    ipc.on('data', (e, arg) =>
+    {
+      count = arg
+      console.log(count)
+    })
+    ipc.send('read', 'count')
+
+  </script>
+</html>
