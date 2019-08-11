@@ -67,14 +67,14 @@ app.on('activate', () => {
 // IPC events
 
 // arg = {key: '', value ''}
-ipcMain.on('write', (e, arg) =>
+ipcMain.on('write', (e, key, value) =>
 {
-  data.store[arg.key] = arg.value
-  mainWindow.webContents.send('data', data.store[arg.key])
+  data.store[key] = value
+  mainWindow.webContents.send('data', data.store[key])
 })
 
 // arg = key
-ipcMain.on('read', (e, arg) =>
+ipcMain.on('read', (e, key) =>
 {
-  mainWindow.webContents.send('data', data.store[arg])
+  mainWindow.webContents.send('data', data.store[key])
 })

@@ -24,7 +24,7 @@
     let counterWrite = () =>
     {
       count += 1
-      ipc.send('write', {key: 'count', value: count})
+      ipc.send('write', 'count', count)
     }
     let counterRead = () =>
     {
