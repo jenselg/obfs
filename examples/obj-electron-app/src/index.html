@@ -24,11 +24,11 @@
     let counterWrite = () =>
     {
       count += 1
-      ipc.send('write', 'count', count)
+      ipc.send('set', 'count', count)
     }
     let counterRead = () =>
     {
-      ipc.send('read', 'count')
+      ipc.send('get', 'count')
     }
 
     // IPC events
@@ -37,7 +37,7 @@
       count = arg
       console.log(count)
     })
-    ipc.send('read', 'count')
+    ipc.send('get', 'count')
 
   </script>
 </html>
