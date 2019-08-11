@@ -3,12 +3,21 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 
 // Obj.js
 const Obj = require('@jenselg/obj.js');
-let options = { name: 'data', path: app.getPath('userData') };
+let options =
+{
+  name: 'data',
+  path: app.getPath('userData')
+};
 let data = new Obj(options);
 
 // Initialize data objects
 data.config ? true : data.config = {}
 data.store ? true : data.store = {}
+
+// Output instance to console
+console.log('\nObj.js instance:\n')
+console.log(data)
+console.log('\n')
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
