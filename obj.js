@@ -239,7 +239,7 @@ class Obj
               fs.readFile(dataPath, this.encoding, (err, data) =>
               {
                 if (err) reject (err)
-                resolve(eval(data))
+                resolve(new Function('"use strict"; return ' + data)())
               })
             })
           }
@@ -269,7 +269,7 @@ class Obj
       }
       else
       {
-        if (dataPath.endsWith('.js')) output = eval(fs.readFileSync(dataPath, this.encoding))
+        if (dataPath.endsWith('.js')) output = new Function('"use strict"; return ' + fs.readFileSync(dataPath, this.encoding))()
         else if (dataPath.endsWith('.dat')) output = JSON.parse(fs.readFileSync(dataPath, this.encoding))
         else output = fs.readFileSync(dataPath, this.encoding)
       }
