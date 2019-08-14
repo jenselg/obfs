@@ -21,28 +21,32 @@ class Obj
     // fn variables
     let handler, getData, setData, writeData, readData, cloneData, delData
 
-
-
     // get data from directories using paths, return object
     getData = (parent, child) =>
     { // START getData
       if (typeof(child) !== 'symbol')
       {
 
+      // path property is object notation
+      // use args.path as the base path
+
       // variables
-      let output, files, childDir, childJs, childData, childObj, childId, childDirId
-      childDir = path.resolve(parent.path, child)
-      childDirId = path.resolve(parent.path, child, '.obj')
-      childJs = path.resolve(parent.path, child + '.js')
-      childData = path.resolve(parent.path, child + '.dat')
-      childId = path.resolve(parent.path, '.obj')
+      let output, files, childDir, childJs, childData, childObj, childId, childDirId, objectPath
+
+      childId = path.resolve(args.path, ...parent.path.split('.'), '.obj')
+      childDirId = path.resolve(args.path, ...parent.path.split('.'), child, '.obj')
+
+      childDir = path.resolve(args.path, ...parent.path.split('.'), child)
+      childJs = path.resolve(args.path, ...parent.path.split('.'), child + '.js')
+      childData = path.resolve(args.path, ...parent.path.split('.'), child + '.dat')
+      objectPath = parent.path + '.' + child
 
       // directory
       if (fs.existsSync(childDir))
       {
 
         childObj = {}
-        childObj.path = childDir
+        childObj.path = objectPath
 
         files = fs.readdirSync(childDir, { encoding: this.encoding })
         files.forEach((file) =>
@@ -96,11 +100,12 @@ class Obj
     { // START setData
 
       // variables
-      let output, childDir, childJs, childData, childObj, childId
-      childDir = path.resolve(parent.path, child)
-      childJs = path.resolve(parent.path, child + '.js')
-      childData = path.resolve(parent.path, child + '.dat')
-      childId = path.resolve(parent.path, '.obj')
+      let output, childDir, childJs, childData, childObj, childId, objectPath
+      childDir = path.resolve(args.path, ...parent.path.split('.'), child)
+      childJs = path.resolve(args.path, ...parent.path.split('.'), child + '.js')
+      childData = path.resolve(args.path, ...parent.path.split('.'), child + '.dat')
+      childId = path.resolve(args.path, ...parent.path.split('.'), '.obj')
+      objectPath = parent.path + '.' + child
 
       // BASE VALUE LOGIC // object -> directory
       if (typeof(value) === 'object' && !Array.isArray(value))
@@ -108,27 +113,30 @@ class Obj
         // init child object
         childObj = {}
 
+        // set path for value
+        value.path = objectPath
+
         // create directory and .obj
         if (!fs.existsSync(childDir))
         {
           fs.mkdirSync(childDir)
-          fs.writeFileSync(path.resolve(childDir, '.obj'), childDir)
+          fs.writeFileSync(path.resolve(childDir, '.obj'), objectPath)
         }
         else if (!fs.existsSync(path.resolve(childDir, '.obj')))
         {
-          fs.writeFileSync(path.resolve(childDir, '.obj'), childDir)
+          fs.writeFileSync(path.resolve(childDir, '.obj'), objectPath)
         }
         else
         {
           delData(childDir)
           fs.mkdirSync(childDir)
-          fs.writeFileSync(path.resolve(childDir, '.obj'), childDir)
+          fs.writeFileSync(path.resolve(childDir, '.obj'), objectPath)
         }
 
         // set path to value and child object
         value = cloneData(value)
-        childObj.path = childDir
-        value.path = childDir
+        childObj.path = objectPath
+        value.path = objectPath
 
         // iterate through object keys
         Object.keys(value).forEach((valKey) =>
@@ -358,29 +366,31 @@ class Obj
     // use custom path
     if (args.path)
     {
-      this.path = path.resolve(args.path)
-      if (!fs.existsSync(this.path)) { fs.mkdirSync(this.path) }
+      args.path = path.resolve(args.path)
+      if (!fs.existsSync(args.path)) { fs.mkdirSync(args.path) }
     }
 
     // use home path
     else
     {
-      this.path = os.homedir()
+      args.path = os.homedir()
     }
 
     // use custom obj name
     if (args.name)
     {
-      this.path = path.resolve(this.path, args.name)
-      if (!fs.existsSync(this.path)) { fs.mkdirSync(this.path) }
+      if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
     }
 
     // use default obj name
     else
     {
-      this.path = path.resolve(this.path, 'obj')
-      if (!fs.existsSync(this.path)) { fs.mkdirSync(this.path) }
+      args.name = 'obj'
+      if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
     }
+
+    // set this.path to the name
+    this.path = args.name
 
     // file encoding
     this.encoding = args.encoding ? args.encoding : 'utf8'
@@ -392,9 +402,9 @@ class Obj
     this.permissions = args.permissions ? args.permissions : 'rw'
 
     // initialize
-    if (!fs.existsSync(path.resolve(this.path, '.obj')))
+    if (!fs.existsSync(path.resolve(args.path, '.obj')))
     {
-      fs.writeFileSync(path.resolve(this.path, '.obj'), this.path)
+      fs.writeFileSync(path.resolve(args.path, '.obj'), this.path)
     }
     return new Proxy(this, handler)
 
