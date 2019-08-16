@@ -406,6 +406,10 @@ class Obj
     {
       fs.writeFileSync(path.resolve(args.path, '.obj'), this.path)
     }
+
+    // set instance path
+    this.instance = path.resolve(args.path, this.path)
+
     return new Proxy(this, handler)
 
   }
