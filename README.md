@@ -46,9 +46,23 @@
     - read and write: 'rw'
     - defaults to 'rw'
 
-    Notes:
+##### Instance notes:
+
     - Instance path is accessed via this.instance
     - Nested object paths are strings in dot notation
+
+##### Planned instance options:
+
+    options.encryption = { type = '', key }
+    - encrypt/decrypt data using the selected symmetric encryption type
+
+    options.remote = { address = '', credentials: { password: '', passphrase: '', key: '' }, path = '' }
+    - connect to a server via SSH to use Obj.js remotely
+
+    options.ipfs = { options: { persist: boolean, pubsub: boolean }, addresses: [''] }
+    - get data from IPNS addresses and map contents to Obj.js instance
+    - generate a local IPNS address for the Obj.js instance
+    - synchronize data between remote and local
 
 ##### Set data:
 
@@ -95,15 +109,6 @@
     obj.key = undefined // folders / files deleted from filesystem, and returns undefined
     obj.key = '' // key.data with '' value created and other files / folders with the same key name deleted, returns ''
     ...
-
-### TODO's
-
-    - Add IPFS or libP2P option
-    - Add encryption option
-    - Add examples
-    - Add tests
-    - Optimize
-    - Refactor
 
 ### CREDITS
 
