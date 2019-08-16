@@ -46,6 +46,10 @@
     - read and write: 'rw'
     - defaults to 'rw'
 
+    Notes:
+    - Instance path is accessed via this.instance
+    - Nested object paths are strings in dot notation
+
 ##### Set data:
 
     - All data except for non-array objects and functions, are saved in a file in 'key.dat' format
