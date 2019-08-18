@@ -1,3 +1,5 @@
 examples/
 misc/
+node_modules/
+
 sandbox.js

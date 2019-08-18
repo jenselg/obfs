@@ -6,5 +6,15 @@
   "main": "./obj.js",
   "repository": "github:jenselg/Obj.js",
   "license": "MIT",
-  "keywords": ["object oriented", "database", "data store", "file system", "javascript", "node.js", "fs", "js", "obj.js"]
+  "keywords": [
+    "object oriented",
+    "database",
+    "data store",
+    "file system",
+    "javascript",
+    "node.js",
+    "fs",
+    "js",
+    "obj.js"
+  ]
 }

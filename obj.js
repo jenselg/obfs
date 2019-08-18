@@ -309,7 +309,8 @@ class Obj
 
     } // end delData
 
-
+    decryptData = (type, key, data) => {}
+    encryptData = (type, key, data) => {}
 
     // handler function object
     handler = {}

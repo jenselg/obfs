@@ -15,12 +15,14 @@
 ##### Create new instance:
 
     const Obj = require('@jenselg/obj.js')
-    let obj = new Obj(options) // options argument is optional - see below
+    let obj = new Obj(options)
+
+    - options argument is optional - see below
 
 ##### Instance options:
 
     Example:
-    { name: 'obj', path: __dirname } // This creates a folder named 'obj' inside the project folder, containing a .obj file containing the full path
+    { name: 'obj', path: __dirname }
 
     options.name = 'string'
     - name of the obj instance / folder
@@ -48,8 +50,8 @@
 
 ##### Instance notes:
 
-    - Instance path is accessed via this.instance
-    - Nested object paths are strings in dot notation
+    - instance path is accessed via this.instance
+    - nested object paths are strings in dot notation
 
 ##### Planned instance options:
 
@@ -66,10 +68,10 @@
 
 ##### Set data:
 
-    - All data except for non-array objects and functions, are saved in a file in 'key.dat' format
-    - Functions are saved in a file in 'key.js' format
-    - Non-array objects are treated and created as folders, and identified with a .obj file containing the full path
-    - Objects inside arrays are treated as-is and not as folders
+    - all data except for associative arrays and functions, are saved in a file in 'key.dat' format
+    - functions are saved in a file in 'key.js' format
+    - associative arrays are treated and created as folders, and identified with a .obj file containing the relative path in dot notation
+    - objects inside arrays are treated as-is and not as folders
 
     String:
     obj.key = 'string'
@@ -100,11 +102,12 @@
     console.log(obj.key)
 
     Asynchronously:
-    obj.key.then((value) => { console.log(value) }) // async must be set to true in instance options
+    obj.key.then((value) => { console.log(value) })
+    - async must be set to true in instance options
 
 ##### Delete / update data:
 
-    - Set the obj.key to undefined, null, or set to other data to delete or replace the data stored in the filesystem
+    - set the obj.key to undefined, null, or set to other data to delete or replace the data stored in the filesystem
 
     obj.key = undefined // folders / files deleted from filesystem, and returns undefined
     obj.key = '' // key.data with '' value created and other files / folders with the same key name deleted, returns ''
