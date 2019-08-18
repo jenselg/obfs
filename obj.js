@@ -2,12 +2,28 @@
 //
 // File-based, object-oriented data store for Node.js
 //
-// By: Jensel Gatchalian <jensel.gatchalian@gmail.com>
-//
 // Github: https://github.com/jenselg/obj.js
 // NPM: https://www.npmjs.com/package/@jenselg/obj.js
 //
-// License: MIT
+// Copyright (c) 2019 Jensel Gatchalian <jensel.gatchalian@gmail.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 //
 
 'use strict'
@@ -25,7 +41,10 @@ class Obj
 
     // VARIABLES
 
-        let handler, getData, setData, writeData, readData, cloneData, delData
+        let getData, setData // FN OBJECT LOGIC
+        let readData, writeData, cloneData, delData // FN FS OPS
+        let encryptData, decryptData // FN CRYPTO
+        let handler = {} // FN OBJECT TRAPS
 
     // START - FN OBJECT LOGIC
 
@@ -220,21 +239,6 @@ class Obj
 
     // START - FN FS OPS
 
-        writeData = (dataPath, dataContent) =>
-        { // START writeData
-
-          if (this.async)
-          {
-            fs.writeFile(dataPath, dataContent, (err) => { if (err) throw err })
-          }
-
-          else
-          {
-            fs.writeFileSync(dataPath, dataContent)
-          }
-
-        } // END writeData
-
         readData = (dataPath) =>
         { // START readData
           let output
@@ -286,6 +290,21 @@ class Obj
           return output
         } // END readData
 
+        writeData = (dataPath, dataContent) =>
+        { // START writeData
+
+          if (this.async)
+          {
+            fs.writeFile(dataPath, dataContent, (err) => { if (err) throw err })
+          }
+
+          else
+          {
+            fs.writeFileSync(dataPath, dataContent)
+          }
+
+        } // END writeData
+
         cloneData = (object) =>
         { // START cloneData
           let keys = Object.keys(object)
@@ -323,14 +342,12 @@ class Obj
 
     // START - FN CRYPTO
 
-        decryptData = (type, key, data) => {}
         encryptData = (type, key, data) => {}
+        decryptData = (type, key, data) => {}
 
     // END - FN CRYPTO
 
     // START - FN OBJECT TRAPS
-
-        handler = {}
 
         handler.get = (target, key) =>
         { // START handler.get
