@@ -2,7 +2,5 @@
 examples/**/data/
 examples/**/obj/
 examples/**/node_modules/
-examples/**/package-lock.json
 node_modules/
 sandbox.js
-package-lock.json

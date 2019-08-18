@@ -38,6 +38,7 @@ class Obj
         const os = require('os')
         const fs = require('fs')
         const path = require('path')
+        const crypto = require('crypto')
 
     // VARIABLES
 
@@ -45,6 +46,10 @@ class Obj
         let readData, writeData, cloneData, delData // FN FS OPS
         let encryptData, decryptData // FN CRYPTO
         let handler = {} // FN OBJECT TRAPS
+
+    // DEFINE SPECIAL OBJECT PROPERTIES
+
+        let specials = ['path', 'name', 'encoding', 'permissions', 'async', 'fs']
 
     // START - FN OBJECT LOGIC
 
@@ -356,13 +361,15 @@ class Obj
           {
             case 'r':
             case 'ro':
-              return getData(target, key)
+              if (target.path === this.path && specials.indexOf(key) >= 0) return this[key]
+              else return getData(target, key)
               break
             case 'w':
             case 'wo':
               break
             case 'rw':
-              return getData(target, key)
+              if (target.path === this.path && specials.indexOf(key) >= 0) return this[key]
+              else return getData(target, key)
               break
             default:
               throw new Error('Invalid permission set for Obj.js instance. Valid permissions: r, ro, w, wo, rw')
@@ -380,10 +387,12 @@ class Obj
               break
             case 'w':
             case 'wo':
-              target[key] = setData(target, key, value)
+              if (target.path === this.path && specials.indexOf(key) >= 0) throw new Error('Cannot set special properties!')
+              else target[key] = setData(target, key, value)
               break
             case 'rw':
-              target[key] = setData(target, key, value)
+              if (target.path === this.path && specials.indexOf(key) >= 0) throw new Error('Cannot set special properties!')
+              else target[key] = setData(target, key, value)
               break
             default:
               throw new Error('Invalid permission set for Obj.js instance. Valid permissions: r, ro, w, wo, rw')
@@ -441,8 +450,8 @@ class Obj
           fs.writeFileSync(path.resolve(args.path, '.obj'), this.path)
         }
 
-        // define instance
-        this.instance = path.resolve(args.path, this.path)
+        // define fs
+        this.fs = path.resolve(args.path, this.path)
 
         // divide by zero
         return new Proxy(this, handler)
