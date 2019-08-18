@@ -2,8 +2,11 @@
 //
 // File-based, object-oriented data store for Node.js
 //
-// By: Jensel Gatchalian
+// By: Jensel Gatchalian <jensel.gatchalian@gmail.com>
+//
 // Github: https://github.com/jenselg/obj.js
+// NPM: https://www.npmjs.com/package/@jenselg/obj.js
+//
 // License: MIT
 //
 
@@ -14,13 +17,13 @@ class Obj
   constructor (args = {})
   {
 
-    // node libraries
+    // LIBRARIES
 
         const os = require('os')
         const fs = require('fs')
         const path = require('path')
 
-    // fn variables
+    // VARIABLES
 
         let handler, getData, setData, writeData, readData, cloneData, delData
 
@@ -403,28 +406,28 @@ class Obj
           if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
         }
 
-        // set this.path to the name
+        // define path
         this.path = args.name
 
-        // file encoding
+        // define encoding
         this.encoding = args.encoding ? args.encoding : 'utf8'
 
-        // async read/write
+        // define async
         this.async = args.async ? args.async : false
 
-        // permissions
+        // define permissions
         this.permissions = args.permissions ? args.permissions : 'rw'
 
-        // initialize
+        // obj instance initialize
         if (!fs.existsSync(path.resolve(args.path, '.obj')))
         {
           fs.writeFileSync(path.resolve(args.path, '.obj'), this.path)
         }
 
-        // set instance path
+        // define instance
         this.instance = path.resolve(args.path, this.path)
 
-        // start!
+        // divide by zero
         return new Proxy(this, handler)
 
     // END - OBJ INIT
