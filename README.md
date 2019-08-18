@@ -22,7 +22,7 @@
 ##### Instance options:
 
     Example:
-    { name: 'obj', path: __dirname }
+      { name: 'obj', path: __dirname }
 
     options.name = 'string'
     - name of the obj instance / folder
@@ -50,8 +50,22 @@
 
 ##### Instance notes:
 
-    - instance path is accessed via this.instance
+    - path of the instance in the filesystem is accessed via the fs property of the instance
+
+    Example:
+      const Obj = require('@jenselg/obj.js')
+      let obj = new Obj()
+      console.log(obj.fs) // /Users/yourname/obj
+
     - nested object paths are strings in dot notation
+
+    Example:
+      const Obj = require('@jenselg/obj.js')
+      let obj = new Obj()
+      obj.one = {}
+      obj.one.two = {}
+      obj.one.two.three = {}
+      console.log(obj.one.two.three.path) // 'obj.one.two.three'
 
 ##### Planned instance options:
 
