@@ -3,6 +3,7 @@
 examples/**/data/
 examples/**/obj/
 examples/**/node_modules/
-examples/sandbox.js
+
+misc/sandbox.js
 
 node_modules/
