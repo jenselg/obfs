@@ -21,7 +21,8 @@
 
 ##### Instance options:
 
-    Example:
+    - instance options should be an object
+
       { name: 'obj', path: __dirname }
 
     options.name = 'string'
@@ -36,10 +37,6 @@
     - encoding used for data, see https://github.com/nodejs/node/blob/master/lib/buffer.js
     - defaults to 'utf8'
 
-    options.async = boolean
-    - set whether read/write operations are run asynchronously or synchronously
-    - defaults to false
-
     options.permissions = 'string'
     - set read/write permissions for obj instance
     - available permissions: 'r', 'ro', 'w', 'wo', 'rw'
@@ -50,16 +47,14 @@
 
 ##### Instance notes:
 
-    - path of the instance in the filesystem is accessed via the fs property of the instance
+    - path of the instance in the filesystem is accessed via the filesystem property of the instance
 
-    Example:
       const Obj = require('@jenselg/obj.js')
       let obj = new Obj()
-      console.log(obj.fs) // /Users/yourname/obj
+      console.log(obj.filesystem) // /Users/yourname/obj
 
     - nested object paths are strings in dot notation
 
-    Example:
       const Obj = require('@jenselg/obj.js')
       let obj = new Obj()
       obj.one = {}
@@ -87,45 +82,48 @@
     - associative arrays are treated and created as folders, and identified with a .obj file containing the relative path in dot notation
     - objects inside arrays are treated as-is and not as folders
 
-    String:
-    obj.key = 'string'
+    - string:
 
-    Integer:
-    obj.key = 12345
+      obj.key = 'string'
 
-    Float:
-    obj.key = 1.2345
+    - integer:
 
-    Array:
-    obj.key = [1,2,3,4,5]
+      obj.key = 12345
 
-    Boolean:
-    obj.key = true
+    - float:
 
-    Functions:
-    obj.key = (data) => { return data }
-    obj.key()
+      obj.key = 1.2345
 
-    Objects:
-    obj.key = {}
-    obj.key.nested = 'nested'
+    - array:
+
+      obj.key = [1,2,3,4,5]
+
+    - boolean:
+
+      obj.key = true
+
+    - functions:
+
+      obj.key = (data) => { return data }
+      obj.key()
+
+    - objects:
+
+      obj.key = {}
+      obj.key.nested = 'nested'
 
 ##### Get data:
 
-    Synchronously:
-    console.log(obj.key)
+    - just like a regular object
 
-    Asynchronously:
-    obj.key.then((value) => { console.log(value) })
-    - async must be set to true in instance options
+      console.log(obj.key)
 
 ##### Delete / update data:
 
     - set the obj.key to undefined, null, or set to other data to delete or replace the data stored in the filesystem
 
-    obj.key = undefined // folders / files deleted from filesystem, and returns undefined
-    obj.key = '' // key.data with '' value created and other files / folders with the same key name deleted, returns ''
-    ...
+      obj.key = undefined // folders / files deleted from filesystem, and returns undefined
+      obj.key = '' // key.data with '' value created and other files / folders with the same key name deleted, returns ''
 
 ### CREDITS
 
@@ -137,7 +135,7 @@
 
     MIT License
 
-    Copyright (c) 2019 Jensel Gatchalian
+    Copyright (c) 2019 Jensel Gatchalian <jensel.gatchalian@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal

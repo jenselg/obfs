@@ -1,30 +1,37 @@
-// Obj.js
-//
-// File-based, object-oriented data store for Node.js
-//
-// Github: https://github.com/jenselg/obj.js
-// NPM: https://www.npmjs.com/package/@jenselg/obj.js
-//
-// Copyright (c) 2019 Jensel Gatchalian <jensel.gatchalian@gmail.com>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
+/*
+
+  Obj.js
+
+  File-based, object-oriented data store for Node.js
+
+  Github: https://github.com/jenselg/obj.js
+  NPM: https://www.npmjs.com/package/@jenselg/obj.js
+
+  License:
+
+  MIT License
+
+  Copyright (c) 2019 Jensel Gatchalian <jensel.gatchalian@gmail.com>
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+*/
 
 'use strict'
 
@@ -49,7 +56,7 @@ class Obj
 
     // DEFINE SPECIAL OBJECT PROPERTIES
 
-        let specials = ['path', 'name', 'encoding', 'permissions', 'async', 'fs']
+        let specials = ['path', 'name', 'encoding', 'permissions', 'filesystem']
 
     // START - FN OBJECT LOGIC
 
@@ -96,17 +103,8 @@ class Obj
 
             })
 
-            if (this.async)
-            {
-              output = new Promise((resolve, reject) =>
-              {
-                resolve(new Proxy(childObj, handler))
-              })
-            }
-            else
-            {
-              output = new Proxy(childObj, handler)
-            }
+            // return output
+            output = new Proxy(childObj, handler)
 
           }
 
@@ -246,72 +244,23 @@ class Obj
 
         readData = (dataPath) =>
         { // START readData
-          let output
-          if (this.async)
-          {
-            try
-            {
-              if (dataPath.endsWith('.js'))
-              {
-                output = new Promise((resolve, reject) =>
-                {
-                  fs.readFile(dataPath, this.encoding, (err, data) =>
-                  {
-                    if (err) reject (err)
-                    resolve(new Function('"use strict"; return ' + data)())
-                  })
-                })
-              }
-              else if (dataPath.endsWith('.dat'))
-              {
-                output = new Promise((resolve, reject) =>
-                {
-                  fs.readFile(dataPath, this.encoding, (err, data) =>
-                  {
-                    if (err) reject (err)
-                    resolve(JSON.parse(data))
-                  })
-                })
-              }
-              else
-              {
-                output = new Promise((resolve, reject) =>
-                {
-                  fs.readFile(dataPath, this.encoding, (err, data) =>
-                  {
-                    if (err) reject (err)
-                    resolve(data)
-                  })
-                })
-              }
-            } catch (err) { output = undefined }
-          }
-          else
-          {
-            if (dataPath.endsWith('.js')) output = new Function('"use strict"; return ' + fs.readFileSync(dataPath, this.encoding))()
-            else if (dataPath.endsWith('.dat')) output = JSON.parse(fs.readFileSync(dataPath, this.encoding))
-            else output = fs.readFileSync(dataPath, this.encoding)
-          }
-          return output
+
+          if (dataPath.endsWith('.js')) return new Function('"use strict"; return ' + fs.readFileSync(dataPath, this.encoding))()
+          else if (dataPath.endsWith('.dat')) return JSON.parse(fs.readFileSync(dataPath, this.encoding))
+          else return fs.readFileSync(dataPath, this.encoding)
+
         } // END readData
 
         writeData = (dataPath, dataContent) =>
         { // START writeData
 
-          if (this.async)
-          {
-            fs.writeFile(dataPath, dataContent, (err) => { if (err) throw err })
-          }
-
-          else
-          {
-            fs.writeFileSync(dataPath, dataContent)
-          }
+          fs.writeFileSync(dataPath, dataContent)
 
         } // END writeData
 
         cloneData = (object) =>
         { // START cloneData
+
           let keys = Object.keys(object)
           let newObject = {}
           keys.forEach((key) =>
@@ -356,6 +305,7 @@ class Obj
 
         handler.get = (target, key) =>
         { // START handler.get
+
           // NOTES: return the contents of target[key] by reading from folder/files, and if it's a folder return a new proxy
           switch (this.permissions)
           {
@@ -374,10 +324,12 @@ class Obj
             default:
               throw new Error('Invalid permission set for Obj.js instance. Valid permissions: r, ro, w, wo, rw')
           }
+
         } // END handler.get
 
         handler.set = (target, key, value) =>
         { // START handler.set
+
           // NOTES: value can be obj, fn, or everything else, setData should parse that input, create folders/files, and return the same with value.path set
           // edit 'value' properties here to change the data
           switch (this.permissions)
@@ -438,9 +390,6 @@ class Obj
         // define encoding
         this.encoding = args.encoding ? args.encoding : 'utf8'
 
-        // define async
-        this.async = args.async ? args.async : false
-
         // define permissions
         this.permissions = args.permissions ? args.permissions : 'rw'
 
@@ -451,7 +400,7 @@ class Obj
         }
 
         // define fs
-        this.fs = path.resolve(args.path, this.path)
+        this.filesystem = path.resolve(args.path, this.path)
 
         // divide by zero
         return new Proxy(this, handler)
