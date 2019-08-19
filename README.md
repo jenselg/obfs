@@ -120,14 +120,13 @@
 
 ##### Delete / update data:
 
-    - set the obj.key to undefined, null, or set to other data to delete or replace the data stored in the filesystem
+    - set the obj.key to undefined, null, or set to other data
 
       obj.key = undefined // folders / files deleted from filesystem, and returns undefined
-      obj.key = '' // key.data with '' value created and other files / folders with the same key name deleted, returns ''
+      obj.key = 'data' // replaces value of obj.key with 'data'
 
-### CREDITS
+### URL
 
-    By: Jensel Gatchalian
     Github: https://github.com/jenselg/Obj.js
     NPM: https://www.npmjs.com/package/@jenselg/obj.js
 

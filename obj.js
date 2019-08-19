@@ -7,8 +7,6 @@
   Github: https://github.com/jenselg/obj.js
   NPM: https://www.npmjs.com/package/@jenselg/obj.js
 
-  License:
-
   MIT License
 
   Copyright (c) 2019 Jensel Gatchalian <jensel.gatchalian@gmail.com>

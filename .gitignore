@@ -1,6 +1,8 @@
 .DS_Store
+
 examples/**/data/
 examples/**/obj/
 examples/**/node_modules/
+examples/sandbox.js
+
 node_modules/
-sandbox.js
