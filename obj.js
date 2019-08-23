@@ -75,8 +75,10 @@ class Obj
           childObj, childId, childDirId,
           objectPath, currDir
 
-          // set paths
+          // default output
           output = undefined
+
+          // set paths
           childId = path.resolve(args.path, ...parent.path.split('.'), '.obj')
           childDirId = path.resolve(args.path, ...parent.path.split('.'), child, '.obj')
           childDir = path.resolve(args.path, ...parent.path.split('.'), child)
