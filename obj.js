@@ -49,12 +49,15 @@ class Obj
 
         let getData, setData // FN OBJECT LOGIC
         let readData, writeData, cloneData, delData // FN FS OPS
-        let encryptData, decryptData // FN CRYPTO
+        let encryptData, decryptData, encryptionInstance, encryptionInit // FN CRYPTO
         let handler = {} // FN OBJECT TRAPS
 
     // DEFINE SPECIAL OBJECT PROPERTIES
 
-        let specials = ['path', 'name', 'encoding', 'permissions', 'filesystem']
+        let specials =
+        [
+          'path', 'fspath', 'name', 'encoding', 'permissions', 'encryption'
+        ]
 
     // START - FN OBJECT LOGIC
 
@@ -67,18 +70,29 @@ class Obj
           // use args.path as the base path
 
           // variables
-          let output, files, childDir, childJs, childData, childObj, childId, childDirId, objectPath
+          let output, files,
+          childDir, childJs, childData,
+          childObj, childId, childDirId,
+          objectPath, currDir
 
+          // set paths
+          output = undefined
           childId = path.resolve(args.path, ...parent.path.split('.'), '.obj')
           childDirId = path.resolve(args.path, ...parent.path.split('.'), child, '.obj')
-
           childDir = path.resolve(args.path, ...parent.path.split('.'), child)
           childJs = path.resolve(args.path, ...parent.path.split('.'), child + '.js')
           childData = path.resolve(args.path, ...parent.path.split('.'), child + '.dat')
           objectPath = parent.path + '.' + child
+          currDir = path.resolve(args.path, ...parent.path.split('.'))
+
+          // filesystem path
+          if (child === 'fspath')
+          {
+            if (fs.existsSync(currDir)) { output = currDir }
+          }
 
           // directory
-          if (fs.existsSync(childDir))
+          else if (fs.existsSync(childDir))
           {
 
             childObj = {}
@@ -126,7 +140,11 @@ class Obj
         { // START setData
 
           // variables
-          let output, childDir, childJs, childData, childObj, childId, objectPath
+          let output,
+          childDir, childJs, childData,
+          childObj, childId, objectPath
+
+          // set paths
           childDir = path.resolve(args.path, ...parent.path.split('.'), child)
           childJs = path.resolve(args.path, ...parent.path.split('.'), child + '.js')
           childData = path.resolve(args.path, ...parent.path.split('.'), child + '.dat')
@@ -211,7 +229,7 @@ class Obj
           }
 
           // BASE VALUE LOGIC // all other data
-          else if (typeof(value) !== 'undefined' && value !== 'path')
+          else if (typeof(value) !== 'undefined' && child !== 'path' && child !== 'fspath')
           {
 
             // delete conflicting keys
@@ -243,15 +261,31 @@ class Obj
         readData = (dataPath) =>
         { // START readData
 
-          if (dataPath.endsWith('.js')) return new Function('"use strict"; return ' + fs.readFileSync(dataPath, this.encoding))()
-          else if (dataPath.endsWith('.dat')) return JSON.parse(fs.readFileSync(dataPath, this.encoding))
-          else return fs.readFileSync(dataPath, this.encoding)
+          if (this.encryption)
+          {
+            try
+            {
+              if (dataPath.endsWith('.js')) return new Function('"use strict"; return ' + decryptData(fs.readFileSync(dataPath, this.encoding)))()
+              else if (dataPath.endsWith('.dat')) return JSON.parse(decryptData(fs.readFileSync(dataPath, this.encoding)))
+              else return decryptData(fs.readFileSync(dataPath, this.encoding))
+            } catch (err) { return undefined }
+          }
+          else
+          {
+            try
+            {
+              if (dataPath.endsWith('.js')) return new Function('"use strict"; return ' + fs.readFileSync(dataPath, this.encoding))()
+              else if (dataPath.endsWith('.dat')) return JSON.parse(fs.readFileSync(dataPath, this.encoding))
+              else return fs.readFileSync(dataPath, this.encoding)
+            } catch (err) { return undefined }
+          }
 
         } // END readData
 
         writeData = (dataPath, dataContent) =>
         { // START writeData
 
+          if (this.encryption) dataContent = encryptData(dataContent)
           fs.writeFileSync(dataPath, dataContent)
 
         } // END writeData
@@ -294,8 +328,24 @@ class Obj
 
     // START - FN CRYPTO
 
-        encryptData = (type, key, data) => {}
-        decryptData = (type, key, data) => {}
+        encryptData = (data) =>
+        {
+          let iv = crypto.randomBytes(16)
+        	let cipher = crypto.createCipheriv(encryptionInstance.algorithm, new Buffer.from(encryptionInstance.key), iv)
+        	let encrypted = cipher.update(data)
+        	encrypted = Buffer.concat([encrypted, cipher.final()])
+        	return iv.toString('hex').substring(0, 16) + ':' + encrypted.toString('hex') + ':' + iv.toString('hex').substring(16, 32)
+        }
+        decryptData = (data) =>
+        {
+          let parts = data.split(':')
+        	let iv = new Buffer.from(parts[0] + parts[parts.length - 1], 'hex')
+        	let encryptedData = new Buffer.from(parts[1], 'hex')
+        	let decipher = crypto.createDecipheriv(encryptionInstance.algorithm, new Buffer.from(encryptionInstance.key), iv)
+        	let decrypted = decipher.update(encryptedData)
+        	decrypted = Buffer.concat([decrypted, decipher.final()])
+        	return decrypted.toString()
+        }
 
     // END - FN CRYPTO
 
@@ -330,6 +380,7 @@ class Obj
 
           // NOTES: value can be obj, fn, or everything else, setData should parse that input, create folders/files, and return the same with value.path set
           // edit 'value' properties here to change the data
+
           switch (this.permissions)
           {
             case 'r':
@@ -355,6 +406,13 @@ class Obj
     // END - FN OBJECT TRAPS
 
     // START - OBJ INIT
+
+        // OPTIONS:
+        // args.path = ''// string
+        // args.name = ''// string
+        // args.encoding = '' // string
+        // args.permissions = ''// string
+        // args.encryption = { algorithm: '', key: '' } // object
 
         // use custom path
         if (args.path)
@@ -385,20 +443,41 @@ class Obj
         // define path
         this.path = args.name
 
+        // define fspath
+        this.fspath = path.resolve(args.path, args.name)
+
         // define encoding
         this.encoding = args.encoding ? args.encoding : 'utf8'
 
         // define permissions
         this.permissions = args.permissions ? args.permissions : 'rw'
 
+        // define encryption
+        encryptionInit = () =>
+        {
+          encryptionInstance = {}
+          switch (args.encryption.algorithm)
+          {
+            case 'aes-256-cbc':
+            case 'aes256':
+              args.encryption.key = JSON.parse(JSON.stringify(args.encryption.key)).padEnd(32, args.name)
+              encryptionInstance.valid = true
+              break
+            default:
+              throw new Error('Invalid encryption algorithm provided!')
+          }
+          encryptionInstance.algorithm = args.encryption.algorithm
+          encryptionInstance.key = args.encryption.key
+          if (encryptionInstance.valid) return true
+          else throw new Error('Invalid encryption options!')
+        }
+        this.encryption = typeof(args.encryption) === 'object' && args.encryption.algorithm && args.encryption.key ? encryptionInit() : false
+
         // obj instance initialize
         if (!fs.existsSync(path.resolve(args.path, '.obj')))
         {
           fs.writeFileSync(path.resolve(args.path, '.obj'), this.path)
         }
-
-        // define fs
-        this.filesystem = path.resolve(args.path, this.path)
 
         // divide by zero
         return new Proxy(this, handler)

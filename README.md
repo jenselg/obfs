@@ -45,15 +45,22 @@
     - read and write: 'rw'
     - defaults to 'rw'
 
-##### Instance notes:
+    options.encryption = {}
+    options.encryption.algorithm = 'string'
+    options.encryption.key = 'string'
 
-    - path of the instance in the filesystem is accessed via the filesystem property of the instance
+##### Paths:
+
+    - object / directory absolute paths (filesystem) are accessed via the fspath property
 
       const Obj = require('@jenselg/obj.js')
       let obj = new Obj()
-      console.log(obj.filesystem) // /Users/yourname/obj
+      obj.one = {}
+      obj.one.two = {}
+      obj.one.two.three = {}
+      console.log(obj.one.two.three.fspath) // '/home/username/obj/one/two/three'
 
-    - nested object paths are strings in dot notation
+    - object / directory relative paths (Obj.js instance) are accessed via the path property
 
       const Obj = require('@jenselg/obj.js')
       let obj = new Obj()
@@ -62,18 +69,15 @@
       obj.one.two.three = {}
       console.log(obj.one.two.three.path) // 'obj.one.two.three'
 
-##### Planned instance options:
+##### Protected properties:
 
-    options.encryption = { type = '', key }
-    - encrypt/decrypt data using the selected symmetric encryption type
+    - the following properties cannot be set on the instance:
 
-    options.remote = { address = '', credentials: { password: '', passphrase: '', key: '' }, path = '' }
-    - connect to a server via SSH to use Obj.js remotely
+      ['path', 'fspath', 'name', 'encoding', 'permissions', 'encryption']
 
-    options.ipfs = { options: { persist: boolean, pubsub: boolean }, addresses: [''] }
-    - get data from IPNS addresses and map contents to Obj.js instance
-    - generate a local IPNS address for the Obj.js instance
-    - synchronize data between remote and local
+##### Encryption:
+
+    - data can be encrypted using symmetric encryption methods
 
 ##### Set data:
 
@@ -125,7 +129,7 @@
       obj.key = undefined // folders / files deleted from filesystem, and returns undefined
       obj.key = 'data' // replaces value of obj.key with 'data'
 
-### URL
+### LINKS
 
     Github: https://github.com/jenselg/Obj.js
     NPM: https://www.npmjs.com/package/@jenselg/obj.js
