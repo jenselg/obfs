@@ -364,7 +364,8 @@ class Obj
           // TODO: Add more key hashing methods
           return key.split(':').map((val) =>
           {
-            return crypto.createHash('sha256').update(val).digest() // use sha256 for hashing the key
+            // use sha256 for hashing the key for now; 32 bytes length for 256 bit algos
+            return crypto.createHash('sha256').update(val).digest()
           })
 
         } // END encryptKey
@@ -374,8 +375,8 @@ class Obj
           // TODO: Add more key hashing methods
           return key.split(':').map((val) =>
           {
-            // TODO: Add more key hashing methods
-            return crypto.createHash('sha256').update(val).digest() // use sha256 for hashing the key
+            // use sha256 for hashing the key for now; 32 bytes length for 256 bit algos
+            return crypto.createHash('sha256').update(val).digest()
           }).reverse()
 
         } // END decryptKey
