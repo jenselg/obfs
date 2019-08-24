@@ -333,7 +333,7 @@ class Obj
 
         encryptData = (data) =>
         { // START encryptData
-
+          // TODO: Rewrite code to use streams for better memory management
           encryptKey(encryptionInstance.key, encryptionInstance.keyLength).forEach((key) =>
           {
             let iv = crypto.randomBytes(16)
@@ -347,7 +347,7 @@ class Obj
 
         decryptData = (data) =>
         { // START decryptData
-
+          // TODO: Rewrite code to use streams for better memory management
           decryptKey(encryptionInstance.key, encryptionInstance.keyLength).forEach((key) =>
           {
             let iv = new Buffer.from(data.slice(0, 16) + data.slice(-16, data.length), 'hex')
@@ -361,24 +361,21 @@ class Obj
 
         encryptKey = (key, length) =>
         { // START encryptKey
-
+          // TODO: Add more key hashing methods
           return key.split(':').map((val) =>
           {
-            val = crypto.createHash('sha1').update(val).digest('hex')
-            val = val.padEnd(length, val).slice(0, length)
-            return val
+            return crypto.createHash('sha256').update(val).digest() // use sha256 for hashing the key
           })
 
         } // END encryptKey
 
         decryptKey = (key, length) =>
         { // START decryptKey
-
+          // TODO: Add more key hashing methods
           return key.split(':').map((val) =>
           {
-            val = crypto.createHash('sha1').update(val).digest('hex')
-            val = val.padEnd(length, val).slice(0, length)
-            return val
+            // TODO: Add more key hashing methods
+            return crypto.createHash('sha256').update(val).digest() // use sha256 for hashing the key
           }).reverse()
 
         } // END decryptKey
