@@ -38,28 +38,29 @@ class Obj
   constructor (args = {})
   {
 
-    // LIBRARIES
+    //= LIBRARIES
 
         const os = require('os')
         const fs = require('fs')
         const path = require('path')
         const crypto = require('crypto')
 
-    // VARIABLES
+    //= VARIABLES
 
         let getData, setData // FN OBJECT LOGIC
         let readData, writeData, cloneData, delData // FN FS OPS
-        let encryptData, decryptData, encryptionInstance, encryptionInit // FN CRYPTO
+        let encryptData, decryptData, encryptKey, decryptKey, encryptionInit, encryptionInstance // FN CRYPTO
         let handler = {} // FN OBJECT TRAPS
+        let init // FN INIT
 
-    // DEFINE SPECIAL OBJECT PROPERTIES
+    //= SPECIAL INSTANCE PROPERTIES
 
         let specials =
         [
           'path', 'fspath', 'name', 'encoding', 'permissions', 'encryption'
         ]
 
-    // START - FN OBJECT LOGIC
+    //= START - FN OBJECT LOGIC
 
         getData = (parent, child) =>
         { // START getData
@@ -89,9 +90,7 @@ class Obj
 
           // filesystem path
           if (child === 'fspath')
-          {
-            if (fs.existsSync(currDir)) { output = currDir }
-          }
+          { if (fs.existsSync(currDir)) { output = currDir } }
 
           // directory
           else if (fs.existsSync(childDir))
@@ -123,15 +122,17 @@ class Obj
           }
 
           // function
-          else if (fs.existsSync(childJs)) { output = readData(childJs) }
+          else if (fs.existsSync(childJs))
+          { output = readData(childJs) }
 
           // data
-          else if (fs.existsSync(childData)) { output = readData(childData) }
+          else if (fs.existsSync(childData))
+          { output = readData(childData) }
 
           // path
-          else if (child === 'path') { output = readData(childId) }
+          else if (child === 'path')
+          { output = readData(childId) }
 
-          // return final output
           // return output
           return output
 
@@ -256,9 +257,9 @@ class Obj
 
         } // END setData
 
-    // END - FN OBJECT LOGIC
+    //= END - FN OBJECT LOGIC
 
-    // START - FN FS OPS
+    //= START - FN FS OPS
 
         readData = (dataPath) =>
         { // START readData
@@ -267,10 +268,10 @@ class Obj
           {
             try
             {
-              if (dataPath.endsWith('.js')) return new Function('"use strict"; return ' + decryptData(fs.readFileSync(dataPath, this.encoding)))()
-              else if (dataPath.endsWith('.dat')) return JSON.parse(decryptData(fs.readFileSync(dataPath, this.encoding)))
-              else return decryptData(fs.readFileSync(dataPath, this.encoding))
-            } catch (err) { return undefined }
+              if (dataPath.endsWith('.js')) return new Function('"use strict"; return ' + decryptData(fs.readFileSync(dataPath, this.encoding), dataPath))()
+              else if (dataPath.endsWith('.dat')) return JSON.parse(decryptData(fs.readFileSync(dataPath, this.encoding), dataPath))
+              else return decryptData(fs.readFileSync(dataPath, this.encoding), dataPath)
+            } catch (err) { return err }
           }
           else
           {
@@ -287,7 +288,7 @@ class Obj
         writeData = (dataPath, dataContent) =>
         { // START writeData
 
-          if (this.encryption) dataContent = encryptData(dataContent)
+          if (this.encryption) dataContent = encryptData(dataContent, dataPath)
           fs.writeFileSync(dataPath, dataContent)
 
         } // END writeData
@@ -326,32 +327,89 @@ class Obj
 
         } // END delData
 
-    // END - FN FS OPS
+    //= END - FN FS OPS
 
-    // START - FN CRYPTO
+    //= START - FN CRYPTO
 
-        encryptData = (data) =>
-        {
-          let iv = crypto.randomBytes(16)
-        	let cipher = crypto.createCipheriv(encryptionInstance.algorithm, new Buffer.from(encryptionInstance.key), iv)
-        	let encrypted = cipher.update(data)
-        	encrypted = Buffer.concat([encrypted, cipher.final()])
-        	return iv.toString('hex').substring(0, 16) + ':' + encrypted.toString('hex') + ':' + iv.toString('hex').substring(16, 32)
-        }
-        decryptData = (data) =>
-        {
-          let parts = data.split(':')
-        	let iv = new Buffer.from(parts[0] + parts[parts.length - 1], 'hex')
-        	let encryptedData = new Buffer.from(parts[1], 'hex')
-        	let decipher = crypto.createDecipheriv(encryptionInstance.algorithm, new Buffer.from(encryptionInstance.key), iv)
-        	let decrypted = decipher.update(encryptedData)
-        	decrypted = Buffer.concat([decrypted, decipher.final()])
-        	return decrypted.toString()
-        }
+        encryptData = (data, padding) =>
+        { // START encryptData
 
-    // END - FN CRYPTO
+          encryptKey(encryptionInstance.key, encryptionInstance.keyLength).forEach((key) =>
+          {
+            let iv = crypto.randomBytes(16)
+            let cipher = crypto.createCipheriv(encryptionInstance.algorithm, new Buffer.from(key), iv)
+            let encStr = Buffer.concat([cipher.update(data), cipher.final()]).toString('hex')
+            data = iv.toString('hex').substring(0, 16) + encStr + iv.toString('hex').substring(16, 32)
+          })
+          return data
 
-    // START - FN OBJECT TRAPS
+        } // END encryptData
+
+        decryptData = (data, padding) =>
+        { // START decryptData
+
+          decryptKey(encryptionInstance.key, encryptionInstance.keyLength).forEach((key) =>
+          {
+            let iv = new Buffer.from(data.slice(0, 16) + data.slice(-16, data.length), 'hex')
+            let decipher = crypto.createDecipheriv(encryptionInstance.algorithm, new Buffer.from(key), iv)
+            let encBuffer = new Buffer.from(data.slice(0, -16).substr(16), 'hex')
+            data = Buffer.concat([decipher.update(encBuffer), decipher.final()]).toString()
+          })
+          return data
+
+        } // END decryptData
+
+        encryptKey = (key, length) =>
+        { // START encryptKey
+
+          return key.split(':').map((val) =>
+          {
+            val = crypto.createHash('md5').update(val).digest('hex')
+            val = val.padEnd(length, val).slice(0, length)
+            return val
+          })
+
+        } // END encryptKey
+
+        decryptKey = (key, length) =>
+        { // START decryptKey
+
+          return key.split(':').map((val) =>
+          {
+            val = crypto.createHash('md5').update(val).digest('hex')
+            val = val.padEnd(length, val).slice(0, length)
+            return val
+          }).reverse()
+
+        } // END decryptKey
+
+        encryptionInit = () =>
+        { // START encryptionInit
+
+          encryptionInstance = {}
+          encryptionInstance.algorithm = args.encryption.algorithm
+          encryptionInstance.key = args.encryption.key
+
+          // accepted algos and assign key length
+          switch (encryptionInstance.algorithm)
+          {
+            case 'aes-256-cbc':
+            case 'aes256':
+              encryptionInstance.keyLength = 32
+              encryptionInstance.valid = true
+              break
+            default:
+              throw new Error('Invalid encryption algorithm provided!')
+          }
+
+          if (encryptionInstance.valid) return true
+          else throw new Error('Invalid encryption options!')
+
+        } // END encryptionInit
+
+    //= END - FN CRYPTO
+
+    //= START - FN OBJECT TRAPS
 
         handler.get = (target, key) =>
         { // START handler.get
@@ -405,86 +463,90 @@ class Obj
 
         } // END handler.set
 
-    // END - FN OBJECT TRAPS
+    //= END - FN OBJECT TRAPS
 
-    // START - OBJ INIT
+    //= START - OBJ INIT
 
-        // OPTIONS:
-        // args.path = ''// string
-        // args.name = ''// string
-        // args.encoding = '' // string
-        // args.permissions = ''// string
-        // args.encryption = { algorithm: '', key: '' } // object
+      /*
 
-        // use custom path
-        if (args.path)
-        {
-          args.path = path.resolve(args.path)
-          if (!fs.existsSync(args.path)) { fs.mkdirSync(args.path) }
-        }
+        OPTIONS:
+        args.path = ''// string
+        args.name = ''// string
+        args.encoding = '' // string
+        args.permissions = ''// string
+        args.encryption = { algorithm: '', keys: ':::...' } // object
 
-        // use home path
-        else
-        {
-          args.path = os.homedir()
-        }
+      */
 
-        // use custom obj name
-        if (args.name)
-        {
-          if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
-        }
+        init = () =>
+        { // START init
 
-        // use default obj name
-        else
-        {
-          args.name = 'obj'
-          if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
-        }
-
-        // define path
-        this.path = args.name
-
-        // define fspath
-        this.fspath = path.resolve(args.path, args.name)
-
-        // define encoding
-        this.encoding = args.encoding ? args.encoding : 'utf8'
-
-        // define permissions
-        this.permissions = args.permissions ? args.permissions : 'rw'
-
-        // define encryption
-        encryptionInit = () =>
-        {
-          encryptionInstance = {}
-          switch (args.encryption.algorithm)
+          // follow the white rabbit...
+          try
           {
-            case 'aes-256-cbc':
-            case 'aes256':
-              args.encryption.key = JSON.parse(JSON.stringify(args.encryption.key)).padEnd(32, args.name)
-              encryptionInstance.valid = true
-              break
-            default:
-              throw new Error('Invalid encryption algorithm provided!')
+            // 🐇 - use custom path
+            if (args.path)
+            {
+              args.path = path.resolve(args.path)
+              if (!fs.existsSync(args.path)) { fs.mkdirSync(args.path) }
+            }
+
+            // 🐇 - use home path
+            else
+            {
+              args.path = os.homedir()
+            }
+
+            // 🐇 - use custom obj name
+            if (args.name)
+            {
+              if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
+            }
+
+            // 🐇 - use default obj name
+            else
+            {
+              args.name = 'obj'
+              if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
+            }
+
+            // 🐇 - define path
+            this.path = args.name
+
+            // 🐇 - define fspath
+            this.fspath = path.resolve(args.path, args.name)
+
+            // 🐇 - define encoding
+            this.encoding = args.encoding ? args.encoding : 'utf8'
+
+            // 🐇 - define permissions
+            this.permissions = args.permissions ? args.permissions : 'rw'
+
+            // 🐇 - define encryption
+            this.encryption = typeof(args.encryption) === 'object' && args.encryption.algorithm && args.encryption.key ? encryptionInit() : false
+
+            // 🐇 - obj instance initialize
+            if (!fs.existsSync(path.resolve(args.path, '.obj')))
+            {
+              fs.writeFileSync(path.resolve(args.path, '.obj'), this.path)
+            }
+
+            // down the rabbit hole we go...
+            return true
+
           }
-          encryptionInstance.algorithm = args.encryption.algorithm
-          encryptionInstance.key = args.encryption.key
-          if (encryptionInstance.valid) return true
-          else throw new Error('Invalid encryption options!')
-        }
-        this.encryption = typeof(args.encryption) === 'object' && args.encryption.algorithm && args.encryption.key ? encryptionInit() : false
 
-        // obj instance initialize
-        if (!fs.existsSync(path.resolve(args.path, '.obj')))
-        {
-          fs.writeFileSync(path.resolve(args.path, '.obj'), this.path)
-        }
+          // you lost your way...
+          catch (err) { return false }
 
-        // divide by zero
-        return new Proxy(this, handler)
+        } // END init
 
-    // END - OBJ INIT
+        // 💊 - take the red pill...
+        if (init()) return new Proxy(this, handler)
+        // 💊 - take the blue pill...
+        else { throw new Error('Failed to start Obj.js instance. Please check your options.') }
+
+    //= END - OBJ INIT
 
   }
 }
