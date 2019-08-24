@@ -48,6 +48,11 @@
     options.encryption = {}
     options.encryption.algorithm = 'string'
     options.encryption.key = 'string'
+    - available algorithms: aes256
+    - key(s) formats:
+      - 'key' // single-level encryption
+      - 'a:sequence:of:different:keys' // multi-level encryption - can be resource intensive!
+    - see code for implementation
 
 ##### Paths:
 
@@ -74,10 +79,6 @@
     - the following properties cannot be set on the instance:
 
       ['path', 'fspath', 'name', 'encoding', 'permissions', 'encryption']
-
-##### Encryption:
-
-    - data can be encrypted using symmetric encryption methods
 
 ##### Set data:
 

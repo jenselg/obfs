@@ -268,10 +268,10 @@ class Obj
           {
             try
             {
-              if (dataPath.endsWith('.js')) return new Function('"use strict"; return ' + decryptData(fs.readFileSync(dataPath, this.encoding), dataPath))()
-              else if (dataPath.endsWith('.dat')) return JSON.parse(decryptData(fs.readFileSync(dataPath, this.encoding), dataPath))
-              else return decryptData(fs.readFileSync(dataPath, this.encoding), dataPath)
-            } catch (err) { return err }
+              if (dataPath.endsWith('.js')) return new Function('"use strict"; return ' + decryptData(fs.readFileSync(dataPath, this.encoding)))()
+              else if (dataPath.endsWith('.dat')) return JSON.parse(decryptData(fs.readFileSync(dataPath, this.encoding)))
+              else return decryptData(fs.readFileSync(dataPath, this.encoding))
+            } catch (err) { return undefined }
           }
           else
           {
@@ -288,7 +288,7 @@ class Obj
         writeData = (dataPath, dataContent) =>
         { // START writeData
 
-          if (this.encryption) dataContent = encryptData(dataContent, dataPath)
+          if (this.encryption) dataContent = encryptData(dataContent)
           fs.writeFileSync(dataPath, dataContent)
 
         } // END writeData
@@ -331,7 +331,7 @@ class Obj
 
     //= START - FN CRYPTO
 
-        encryptData = (data, padding) =>
+        encryptData = (data) =>
         { // START encryptData
 
           encryptKey(encryptionInstance.key, encryptionInstance.keyLength).forEach((key) =>
@@ -345,7 +345,7 @@ class Obj
 
         } // END encryptData
 
-        decryptData = (data, padding) =>
+        decryptData = (data) =>
         { // START decryptData
 
           decryptKey(encryptionInstance.key, encryptionInstance.keyLength).forEach((key) =>
@@ -364,7 +364,7 @@ class Obj
 
           return key.split(':').map((val) =>
           {
-            val = crypto.createHash('md5').update(val).digest('hex')
+            val = crypto.createHash('sha1').update(val).digest('hex')
             val = val.padEnd(length, val).slice(0, length)
             return val
           })
@@ -376,7 +376,7 @@ class Obj
 
           return key.split(':').map((val) =>
           {
-            val = crypto.createHash('md5').update(val).digest('hex')
+            val = crypto.createHash('sha1').update(val).digest('hex')
             val = val.padEnd(length, val).slice(0, length)
             return val
           }).reverse()
@@ -393,7 +393,6 @@ class Obj
           // accepted algos and assign key length
           switch (encryptionInstance.algorithm)
           {
-            case 'aes-256-cbc':
             case 'aes256':
               encryptionInstance.keyLength = 32
               encryptionInstance.valid = true
@@ -525,10 +524,26 @@ class Obj
             // 🐇 - define encryption
             this.encryption = typeof(args.encryption) === 'object' && args.encryption.algorithm && args.encryption.key ? encryptionInit() : false
 
-            // 🐇 - obj instance initialize
-            if (!fs.existsSync(path.resolve(args.path, '.obj')))
+            // 🐇 - check instance encryption
+            if (this.encryption)
             {
-              fs.writeFileSync(path.resolve(args.path, '.obj'), this.path)
+              if (!fs.existsSync(path.resolve(args.path, args.name, '.secure')))
+              {
+                fs.writeFileSync(path.resolve(args.path, args.name, '.secure'), this.path)
+              }
+            }
+            else
+            {
+              if (fs.existsSync(path.resolve(args.path, args.name, '.secure')))
+              {
+                throw new Error()
+              }
+            }
+
+            // 🐇 - create obj identifier
+            if (!fs.existsSync(path.resolve(args.path, args.name, '.obj')))
+            {
+              fs.writeFileSync(path.resolve(args.path, args.name, '.obj'), this.path)
             }
 
             // down the rabbit hole we go...
