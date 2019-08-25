@@ -23,7 +23,7 @@
 
     - instance options should be an object
 
-      { name: 'obj', path: __dirname }
+      { name: 'obj-store', path: __dirname }
 
     options.name = 'string'
     - name of the obj instance / folder
@@ -48,10 +48,15 @@
     options.encryption = {}
     options.encryption.algorithm = 'string'
     options.encryption.key = 'string'
-    - available algorithms: aes256
+    - available algorithms: aes256, aria256, camellia256
     - key(s) formats:
-      - 'key' // single-level encryption
-      - 'a:sequence:of:different:keys' // multi-level encryption - can be resource intensive!
+      - 'key'
+        - single-level encryption
+      - 'a:sequence:of:different:keys'
+        - multi-level encryption
+        - colon-separated values
+        - can possibly get resource intensive!
+    - once a data store has been encrypted, you can't start an unencrypted instance on it
     - see code for implementation
 
 ##### Paths:
@@ -79,6 +84,10 @@
     - the following properties cannot be set on the instance:
 
       ['path', 'fspath', 'name', 'encoding', 'permissions', 'encryption']
+
+##### Current limitations:
+
+    - using a fairly complex library as a set value won't work as intended
 
 ##### Set data:
 

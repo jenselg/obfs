@@ -163,16 +163,21 @@ class Obj
             // set path for value
             value.path = objectPath
 
+            // delete existing non-objects
+            if (fs.existsSync(childJs))
+            { fs.unlinkSync(childJs) }
+
+            if (fs.existsSync(childData))
+            { fs.unlinkSync(childData) }
+
             // create directory and .obj
             if (!fs.existsSync(childDir))
             {
               fs.mkdirSync(childDir)
               fs.writeFileSync(path.resolve(childDir, '.obj'), objectPath)
             }
-            else if (!fs.existsSync(path.resolve(childDir, '.obj')))
-            {
-              fs.writeFileSync(path.resolve(childDir, '.obj'), objectPath)
-            }
+
+            // remove current directory and recreate along with .obj
             else
             {
               delData(childDir)
@@ -188,6 +193,7 @@ class Obj
             // iterate through object keys
             Object.keys(value).forEach((valKey) =>
             {
+
               // object - > directory
               if (typeof(value[valKey]) === 'object' && !Array.isArray(value[valKey]))
               {
@@ -199,7 +205,7 @@ class Obj
               else if (typeof(value[valKey]) === 'function')
               {
                 // write to fs
-                writeData(path.resolve(childDir, valKey + '.js'), '' + value[valKey])
+                writeData(path.resolve(args.path, ...value.path.split('.'), valKey + '.js'), '' + value[valKey])
                 // set to value
                 childObj[valKey] = value[valKey]
               }
@@ -208,7 +214,7 @@ class Obj
               else if (typeof(value[valKey]) !== 'undefined' && valKey !== 'path')
               {
                 // write to fs
-                writeData(path.resolve(childDir, valKey + '.dat'), JSON.stringify(value[valKey]))
+                writeData(path.resolve(args.path, ...value.path.split('.'), valKey + '.dat'), JSON.stringify(value[valKey]))
                 // set to value
                 childObj[valKey] = value[valKey]
               }
@@ -311,6 +317,7 @@ class Obj
 
           if (fs.existsSync(arg))
           {
+
             fs.readdirSync(arg).forEach((file, index) => {
               let curPath = path.resolve(arg, file)
               if (fs.lstatSync(curPath).isDirectory())
@@ -364,8 +371,17 @@ class Obj
           // TODO: Add more key hashing methods
           return key.split(':').map((val) =>
           {
-            // use sha256 for hashing the key for now; 32 bytes length for 256 bit algos
-            return crypto.createHash('sha256').update(val).digest()
+            switch (length)
+            {
+
+              // 256 bit algos
+              case 32:
+                return crypto.createHash('sha256').update(val).digest()
+                break
+
+              default:
+                // return nothing
+            }
           })
 
         } // END encryptKey
@@ -375,8 +391,17 @@ class Obj
           // TODO: Add more key hashing methods
           return key.split(':').map((val) =>
           {
-            // use sha256 for hashing the key for now; 32 bytes length for 256 bit algos
-            return crypto.createHash('sha256').update(val).digest()
+            switch (length)
+            {
+
+              // 256 bit algos
+              case 32:
+                return crypto.createHash('sha256').update(val).digest()
+                break
+
+              default:
+                // return nothing
+            }
           }).reverse()
 
         } // END decryptKey
@@ -391,16 +416,24 @@ class Obj
           // accepted algos and assign key length
           switch (encryptionInstance.algorithm)
           {
+
+            // 256 bit algos
             case 'aes256':
+            case 'aria256':
+            case 'camellia256':
               encryptionInstance.keyLength = 32
               encryptionInstance.valid = true
               break
+
+            // invalid algo
             default:
-              throw new Error('Invalid encryption algorithm provided!')
+              throw new Error() // silent fail
+
           }
 
+          // return true to continue init
           if (encryptionInstance.valid) return true
-          else throw new Error('Invalid encryption options!')
+          else throw new Error() // silent fail
 
         } // END encryptionInit
 
@@ -503,7 +536,7 @@ class Obj
             // 🐇 - use default obj name
             else
             {
-              args.name = 'obj'
+              args.name = 'obj-store'
               if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
             }
 
@@ -564,4 +597,5 @@ class Obj
   }
 }
 
+// follow the path...
 module.exports = Obj
