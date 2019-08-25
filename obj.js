@@ -635,12 +635,12 @@ class Obj
             // 🐇 - check instance encryption
             if (this.encryption) // encrypted instance
             {
+
               // define payload
               let payload
-              payload += '---START---'
               if (encryptionInstance.key) payload += encryptionInstance.key
               if (encryptionInstance.keyfile) payload += encryptionInstance.keyfile
-              payload += '---END---'
+
               // encrypt a non-encrypted instance
               if (!fs.existsSync(path.resolve(args.path, args.name, '.secure')))
               {
@@ -652,6 +652,7 @@ class Obj
                 if (payload !== decryptData(fs.readFileSync(path.resolve(args.path, args.name, '.secure'), this.encoding)))
                 { throw new Error('Encrypted instance key(s) mismatch!') }
               }
+
             }
             else // unencrypted instance
             {
