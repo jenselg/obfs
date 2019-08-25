@@ -48,6 +48,7 @@
     options.encryption = {}
     options.encryption.algorithm = 'string'
     options.encryption.key = 'string'
+    options.encryption.keyfile = '/path/to/keyfile'
     - available algorithms: aes256, aria256, camellia256
     - key(s) formats:
       - 'key'
@@ -59,6 +60,10 @@
         - recursive
         - colon-separated values
         - can possibly get resource intensive!
+    - keyfile:
+      - optional
+      - if provided, key property is optional
+      - if both key and keyfile are present, both will be used 
     - once a data store has been encrypted, you can't start an unencrypted instance on it
     - see code for implementation
 

@@ -211,7 +211,7 @@ class Obj
               }
 
               // all other data
-              else if (typeof(value[valKey]) !== 'undefined' && valKey !== 'path')
+              else if (typeof(value[valKey]) !== 'undefined' && typeof(value[valKey]) !== 'symbol' && valKey !== 'path' && valKey !== 'fspath')
               {
                 // set to value
                 childObj[valKey] = value[valKey]
@@ -222,6 +222,7 @@ class Obj
             })
 
             output = new Proxy(childObj, handler)
+
           }
 
           // BASE VALUE LOGIC // js function; () => {}
@@ -239,7 +240,7 @@ class Obj
           }
 
           // BASE VALUE LOGIC // all other data
-          else if (typeof(value) !== 'undefined' && child !== 'path' && child !== 'fspath')
+          else if (typeof(value) !== 'undefined' && typeof(value) !== 'symbol' && child !== 'path' && child !== 'fspath')
           {
 
             // set output
@@ -343,8 +344,8 @@ class Obj
 
         encryptData = (data) =>
         { // START encryptData
-          // TODO: Rewrite code to use streams for better memory management
-          encryptKey(encryptionInstance.key, encryptionInstance.keyLength).forEach((key) =>
+
+          encryptKey(encryptionInstance.key, encryptionInstance.keyfile, encryptionInstance.keyLength).forEach((key) =>
           {
             let iv = crypto.randomBytes(16)
             let cipher = crypto.createCipheriv(encryptionInstance.algorithm, new Buffer.from(key), iv)
@@ -357,8 +358,8 @@ class Obj
 
         decryptData = (data) =>
         { // START decryptData
-          // TODO: Rewrite code to use streams for better memory management
-          decryptKey(encryptionInstance.key, encryptionInstance.keyLength).forEach((key) =>
+
+          decryptKey(encryptionInstance.key, encryptionInstance.keyfile, encryptionInstance.keyLength).forEach((key) =>
           {
             let iv = new Buffer.from(data.slice(0, 16) + data.slice(-16, data.length), 'hex')
             let decipher = crypto.createDecipheriv(encryptionInstance.algorithm, new Buffer.from(key), iv)
@@ -369,43 +370,99 @@ class Obj
 
         } // END decryptData
 
-        encryptKey = (key, length) =>
+        encryptKey = (key, keyfile, length) =>
         { // START encryptKey
-          // TODO: Add more key hashing methods
-          return key.split(':').map((val) =>
+
+          let keyArr
+
+          if (key && keyfile)
           {
-            switch (length)
+            keyArr = key.split(':').map((val) =>
             {
+              switch (length)
+              {
 
-              // 256 bit algos
-              case 32:
-                return crypto.createHash('sha256').update(val).digest()
-                break
+                // 256 bit algos
+                case 32:
+                  return crypto.createHash('sha256').update(val + keyfile + val).digest()
+                  break
 
-              default:
-                // return nothing
-            }
-          })
+                default:
+                  // return nothing
+              }
+            })
+          }
+          else if (key && !keyfile)
+          {
+            keyArr = key.split(':').map((val) =>
+            {
+              switch (length)
+              {
+
+                // 256 bit algos
+                case 32:
+                  return crypto.createHash('sha256').update(val).digest()
+                  break
+
+                default:
+                  // return nothing
+              }
+            })
+          }
+          else if (!key && keyfile)
+          {
+            keyArr = [crypto.createHash('sha256').update(keyfile).digest()]
+          }
+
+          return keyArr
 
         } // END encryptKey
 
-        decryptKey = (key, length) =>
+        decryptKey = (key, keyfile, length) =>
         { // START decryptKey
-          // TODO: Add more key hashing methods
-          return key.split(':').map((val) =>
+
+          let keyArr
+
+          if (key && keyfile)
           {
-            switch (length)
+            keyArr = key.split(':').map((val) =>
             {
+              switch (length)
+              {
 
-              // 256 bit algos
-              case 32:
-                return crypto.createHash('sha256').update(val).digest()
-                break
+                // 256 bit algos
+                case 32:
+                  return crypto.createHash('sha256').update(val + keyfile + val).digest()
+                  break
 
-              default:
-                // return nothing
-            }
-          }).reverse()
+                default:
+                  // return nothing
+              }
+            })
+          }
+          else if (key && !keyfile)
+          {
+            keyArr = key.split(':').map((val) =>
+            {
+              switch (length)
+              {
+
+                // 256 bit algos
+                case 32:
+                  return crypto.createHash('sha256').update(val).digest()
+                  break
+
+                default:
+                  // return nothing
+              }
+            })
+          }
+          else if (!key && keyfile)
+          {
+            keyArr = [crypto.createHash('sha256').update(keyfile).digest()]
+          }
+
+          return keyArr.reverse()
 
         } // END decryptKey
 
@@ -414,7 +471,12 @@ class Obj
 
           encryptionInstance = {}
           encryptionInstance.algorithm = args.encryption.algorithm
-          encryptionInstance.key = args.encryption.key
+          encryptionInstance.key = args.encryption.key ? args.encryption.key : undefined
+          if (fs.existsSync(path.resolve(args.encryption.keyfile)))
+          { encryptionInstance.keyfile = fs.readFileSync(path.resolve(args.encryption.keyfile), this.encoding).split('\n').filter(Boolean).join('') }
+          else
+          { encryptionInstance.keyfile = undefined }
+          encryptionInstance.valid = false
 
           // accepted algos and assign key length
           switch (encryptionInstance.algorithm)
@@ -425,18 +487,20 @@ class Obj
             case 'aria256':
             case 'camellia256':
               encryptionInstance.keyLength = 32
-              encryptionInstance.valid = true
+              if (encryptionInstance.key || encryptionInstance.keyfile)
+              {
+                encryptionInstance.valid = true
+              }
               break
 
             // invalid algo
             default:
-              throw new Error() // silent fail
+              throw new Error('Invalid encryption algorithm!') // silent fail
 
           }
 
-          // return true to continue init
-          if (encryptionInstance.valid) return true
-          else throw new Error() // silent fail
+          // return status
+          return encryptionInstance.valid
 
         } // END encryptionInit
 
@@ -556,7 +620,17 @@ class Obj
             this.permissions = args.permissions ? args.permissions : 'rw'
 
             // 🐇 - define encryption
-            this.encryption = typeof(args.encryption) === 'object' && args.encryption.algorithm && args.encryption.key ? encryptionInit() : false
+            if (typeof(args.encryption) === 'object' && args.encryption.algorithm)
+            {
+              if (args.encryption.key || args.encryption.keyfile)
+              {
+                this.encryption = encryptionInit()
+              }
+              else
+              {
+                this.encryption = false
+              }
+            }
 
             // 🐇 - check instance encryption
             if (this.encryption)
@@ -570,7 +644,7 @@ class Obj
             {
               if (fs.existsSync(path.resolve(args.path, args.name, '.secure')))
               {
-                throw new Error()
+                throw new Error('Cannot start unencrypted instance on an encrypted data store!')
               }
             }
 
@@ -586,7 +660,8 @@ class Obj
           }
 
           // you lost your way...
-          catch (err) { return false }
+          catch (err)
+          { return false }
 
         } // END init
 
