@@ -633,15 +633,29 @@ class Obj
             }
 
             // 🐇 - check instance encryption
-            if (this.encryption)
+            if (this.encryption) // encrypted instance
             {
+              // define payload
+              let payload
+              payload += '---START---'
+              if (encryptionInstance.key) payload += encryptionInstance.key
+              if (encryptionInstance.keyfile) payload += encryptionInstance.keyfile
+              payload += '---END---'
+              // encrypt a non-encrypted instance
               if (!fs.existsSync(path.resolve(args.path, args.name, '.secure')))
               {
-                fs.writeFileSync(path.resolve(args.path, args.name, '.secure'), this.path)
+                fs.writeFileSync(path.resolve(args.path, args.name, '.secure'), encryptData(payload))
+              }
+              // check if provided encryption keys match with the encrypted instance
+              else
+              {
+                if (payload !== decryptData(fs.readFileSync(path.resolve(args.path, args.name, '.secure'), this.encoding)))
+                { throw new Error('Encrypted instance key(s) mismatch!') }
               }
             }
-            else
+            else // unencrypted instance
             {
+              // data store is encrypted
               if (fs.existsSync(path.resolve(args.path, args.name, '.secure')))
               {
                 throw new Error('Cannot start unencrypted instance on an encrypted data store!')
@@ -668,7 +682,7 @@ class Obj
         // 💊 - take the red pill...
         if (init()) return new Proxy(this, handler)
         // 💊 - take the blue pill...
-        else { throw new Error('Failed to start Obj.js instance. Please check your options.') }
+        else { throw new Error('Failed to start Obj.js instance! Please check your options.') }
 
     //= END - OBJ INIT
 

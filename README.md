@@ -64,6 +64,7 @@
       - if provided, key property is optional
       - if both key and keyfile are present, both will be used
     - once a data store has been encrypted, you can't start an unencrypted instance on it
+    - provided key(s) and/or keyfile must match the key(s) and/or keyfile of an encrypted instance
     - see code for implementation
 
 ##### Paths:
