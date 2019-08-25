@@ -134,7 +134,7 @@ class Obj
           { output = readData(childId) }
 
           // return output
-          return output
+          return parent[child] || output
 
           }
         } // END getData
@@ -157,16 +157,12 @@ class Obj
           // BASE VALUE LOGIC // object -> directory
           if (typeof(value) === 'object' && !Array.isArray(value))
           {
-            // init child object
-            childObj = {}
 
-            // set path for value
-            value.path = objectPath
-
-            // delete existing non-objects
+            // delete existing js file
             if (fs.existsSync(childJs))
             { fs.unlinkSync(childJs) }
 
+            // delete existing data file
             if (fs.existsSync(childData))
             { fs.unlinkSync(childData) }
 
@@ -185,7 +181,9 @@ class Obj
               fs.writeFileSync(path.resolve(childDir, '.obj'), objectPath)
             }
 
-            // set path to value and child object
+            // iteration vars
+            childObj = {}
+            value.path = objectPath
             value = cloneData(value)
             childObj.path = objectPath
             value.path = objectPath
@@ -197,6 +195,8 @@ class Obj
               // object - > directory
               if (typeof(value[valKey]) === 'object' && !Array.isArray(value[valKey]))
               {
+                // set to value
+                childObj[valKey] = value[valKey]
                 // recurse
                 setData(value, valKey, value[valKey])
               }
@@ -204,19 +204,19 @@ class Obj
               // js function; () => {}
               else if (typeof(value[valKey]) === 'function')
               {
-                // write to fs
-                writeData(path.resolve(args.path, ...value.path.split('.'), valKey + '.js'), '' + value[valKey])
                 // set to value
                 childObj[valKey] = value[valKey]
+                // write to fs
+                writeData(path.resolve(args.path, ...value.path.split('.'), valKey + '.js'), '' + value[valKey])
               }
 
               // all other data
               else if (typeof(value[valKey]) !== 'undefined' && valKey !== 'path')
               {
-                // write to fs
-                writeData(path.resolve(args.path, ...value.path.split('.'), valKey + '.dat'), JSON.stringify(value[valKey]))
                 // set to value
                 childObj[valKey] = value[valKey]
+                // write to fs
+                writeData(path.resolve(args.path, ...value.path.split('.'), valKey + '.dat'), JSON.stringify(value[valKey]))
               }
 
             })
@@ -228,12 +228,13 @@ class Obj
           else if (typeof(value) === 'function')
           {
 
+            // set output
+            output = value
             // delete conflicting keys
             if (fs.existsSync(childData)) { fs.unlinkSync(childData) }
             else if (fs.existsSync(childDir)) { delData(childDir) }
             // write to fs
             writeData(childJs, '' + value)
-            output = value
 
           }
 
@@ -241,12 +242,13 @@ class Obj
           else if (typeof(value) !== 'undefined' && child !== 'path' && child !== 'fspath')
           {
 
+            // set output
+            output = value
             // delete conflicting keys
             if (fs.existsSync(childJs)) { fs.unlinkSync(childJs) }
             else if (fs.existsSync(childDir)) { delData(childDir) }
             // write to fs
             writeData(childData, JSON.stringify(value))
-            output = value
 
           }
 
@@ -259,6 +261,7 @@ class Obj
           }
 
           // return final
+          // return output
           return output
 
         } // END setData
@@ -295,7 +298,7 @@ class Obj
         { // START writeData
 
           if (this.encryption) dataContent = encryptData(dataContent)
-          fs.writeFileSync(dataPath, dataContent)
+          fs.writeFile(dataPath, dataContent, (err) => { if (err) throw err })
 
         } // END writeData
 
