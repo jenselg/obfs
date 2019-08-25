@@ -51,9 +51,12 @@
     - available algorithms: aes256, aria256, camellia256
     - key(s) formats:
       - 'key'
+        - string
         - single-level encryption
       - 'a:sequence:of:different:keys'
+        - string
         - multi-level encryption
+        - recursive
         - colon-separated values
         - can possibly get resource intensive!
     - once a data store has been encrypted, you can't start an unencrypted instance on it
