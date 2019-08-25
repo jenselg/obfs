@@ -59,11 +59,10 @@
         - multi-level encryption
         - recursive
         - colon-separated values
-        - can possibly get resource intensive!
     - keyfile:
       - optional
       - if provided, key property is optional
-      - if both key and keyfile are present, both will be used 
+      - if both key and keyfile are present, both will be used
     - once a data store has been encrypted, you can't start an unencrypted instance on it
     - see code for implementation
 
