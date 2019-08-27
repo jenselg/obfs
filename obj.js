@@ -134,7 +134,7 @@ class Obj
           { output = readData(childId) }
 
           // return output
-          return parent[child] || output
+          return output
 
           }
         } // END getData
@@ -299,7 +299,7 @@ class Obj
         { // START writeData
 
           if (this.encryption) dataContent = encryptData(dataContent)
-          fs.writeFile(dataPath, dataContent, (err) => { if (err) throw err })
+          fs.writeFileSync(dataPath, dataContent)
 
         } // END writeData
 
