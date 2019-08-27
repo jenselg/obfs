@@ -96,6 +96,7 @@
 ##### Current limitations:
 
     - using a fairly complex library as a set value won't work as intended
+    - datatype methods that modify the original value won't work, such as array push()
 
 ##### Set data:
 
