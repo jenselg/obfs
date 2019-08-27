@@ -472,10 +472,7 @@ class Obj
           encryptionInstance = {}
           encryptionInstance.algorithm = args.encryption.algorithm
           encryptionInstance.key = args.encryption.key ? args.encryption.key : undefined
-          if (fs.existsSync(path.resolve(args.encryption.keyfile)))
-          { encryptionInstance.keyfile = fs.readFileSync(path.resolve(args.encryption.keyfile), this.encoding).split('\n').filter(Boolean).join('') }
-          else
-          { encryptionInstance.keyfile = undefined }
+          encryptionInstance.keyfile = args.encryption.keyfile ? fs.readFileSync(path.resolve(args.encryption.keyfile), this.encoding).split('\n').filter(Boolean).join('') : undefined
           encryptionInstance.valid = false
 
           // accepted algos and assign key length
@@ -571,43 +568,51 @@ class Obj
         args.name = ''// string
         args.encoding = '' // string
         args.permissions = ''// string
-        args.encryption = { algorithm: '', keys: ':::...' } // object
+        args.encryption = { algorithm: '', keys: ':::...', keyfile: '/path/to/key' } // object
 
       */
 
         init = () =>
         { // START init
 
-          // follow the white rabbit...
-          try
-          {
-            // 🐇 - use custom path
-            if (args.path)
-            {
-              args.path = path.resolve(args.path)
-              if (!fs.existsSync(args.path)) { fs.mkdirSync(args.path) }
-            }
+            try { // catch errors for instance creation at specified path and name
 
-            // 🐇 - use home path
-            else
-            {
-              args.path = os.homedir()
-            }
+              // 🐇 - use custom path
+              if (args.path)
+              {
+                args.path = path.resolve(args.path)
+                if (!fs.existsSync(args.path)) { fs.mkdirSync(args.path) }
+              }
 
-            // 🐇 - use custom obj name
-            if (args.name)
-            {
-              if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
-            }
+              // 🐇 - use home path
+              else
+              {
+                args.path = os.homedir()
+              }
 
-            // 🐇 - use default obj name
-            else
-            {
-              args.name = 'obj-store'
-              if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
-            }
+              // 🐇 - use custom obj name
+              if (args.name)
+              {
+                if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
+              }
 
-            // 🐇 - define path
+              // 🐇 - use default obj name
+              else
+              {
+                args.name = 'obj-store'
+                if (!fs.existsSync(path.resolve(args.path, args.name))) { fs.mkdirSync(path.resolve(args.path, args.name)) }
+              }
+
+              // 🐇 - create obj identifier
+              if (!fs.existsSync(path.resolve(args.path, args.name, '.obj')))
+              {
+                fs.writeFileSync(path.resolve(args.path, args.name, '.obj'), this.path)
+              }
+
+            }
+            catch (err) { throw new Error('Failed to create instance at specified path and name! Make sure the path is valid and correct filesystem permissions at specified path and name.') }
+
+            // 🐇 - define relative path
             this.path = args.name
 
             // 🐇 - define fspath
@@ -637,20 +642,24 @@ class Obj
             {
 
               // define payload
-              let payload
-              if (encryptionInstance.key) payload += encryptionInstance.key
-              if (encryptionInstance.keyfile) payload += encryptionInstance.keyfile
+              let encPayload
+              if (encryptionInstance.key) encPayload += encryptionInstance.key
+              if (encryptionInstance.keyfile) encPayload += encryptionInstance.keyfile
 
               // encrypt a non-encrypted instance
               if (!fs.existsSync(path.resolve(args.path, args.name, '.secure')))
               {
-                fs.writeFileSync(path.resolve(args.path, args.name, '.secure'), encryptData(payload))
+                fs.writeFileSync(path.resolve(args.path, args.name, '.secure'), encryptData(encPayload))
               }
               // check if provided encryption keys match with the encrypted instance
               else
               {
-                if (payload !== decryptData(fs.readFileSync(path.resolve(args.path, args.name, '.secure'), this.encoding)))
-                { throw new Error('Encrypted instance key(s) mismatch!') }
+                try
+                {
+                  let decPayload = decryptData(fs.readFileSync(path.resolve(args.path, args.name, '.secure'), this.encoding))
+                  if (encPayload !== decPayload) throw new Error('Encrypted instance key(s) and/or algorithm mismatch!')
+                }
+                catch (err) { throw new Error('Encrypted instance key(s) and/or algorithm mismatch!') }
               }
 
             }
@@ -663,20 +672,8 @@ class Obj
               }
             }
 
-            // 🐇 - create obj identifier
-            if (!fs.existsSync(path.resolve(args.path, args.name, '.obj')))
-            {
-              fs.writeFileSync(path.resolve(args.path, args.name, '.obj'), this.path)
-            }
-
             // down the rabbit hole we go...
             return true
-
-          }
-
-          // you lost your way...
-          catch (err)
-          { return false }
 
         } // END init
 

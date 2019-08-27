@@ -49,7 +49,7 @@
     options.encryption.algorithm = 'string'
     options.encryption.key = 'string'
     options.encryption.keyfile = '/path/to/keyfile'
-    - available algorithms: aes256, aria256, camellia256
+    - available algorithms: 'aes256', 'aria256', 'camellia256'
     - key(s) formats:
       - 'key'
         - string
