@@ -67,9 +67,10 @@ class OBFS
                 let obj = {}
                 obj["obfs_name"] = parent["obfs_name"] + '.' + child
                 obj["obfs_path"] = path.resolve(args.path, ...parent["obfs_name"].split('.'), child)
+                obj["obfs_keys"] = []
                 fs.readdirSync(data, { encoding: this.options["obfs_encoding"] }).forEach((prop) =>
                 {
-                  obj[prop] = getData(obj, prop)
+                  obj["obfs_keys"].push(prop)
                 })
                 output = new Proxy(obj, handler)
               }
@@ -88,6 +89,19 @@ class OBFS
                   break
                 case 'path':
                   output = path.resolve(args.path, ...parent["obfs_name"].split('.'))
+                  break
+                case 'keys':
+                let dirPath = path.resolve(args.path, ...parent["obfs_name"].split('.'))
+                  if (fs.existsSync(dirPath) && fs.lstatSync(dirPath).isDirectory())
+                  {
+                    let dirFiles = []
+                    fs.readdirSync(dirPath, { encoding: this.options["obfs_encoding"] }).forEach((prop) =>
+                    {
+                      dirFiles.push(prop)
+                    })
+                    output = dirFiles
+                  }
+                  else { output = undefined }
                   break
                 default:
               }
@@ -117,9 +131,11 @@ class OBFS
             let obj = {}
             obj["obfs_name"] = parent["obfs_name"] + '.' + child
             obj["obfs_path"] = dataPath
+            obj["obfs_keys"] = []
             Object.keys(dataContent).forEach((prop) =>
             {
-              obj[prop] = setData(obj, prop, dataContent[prop])
+              setData(obj, prop, dataContent[prop])
+              obj["obfs_keys"].push(prop)
             })
             output = obj
           }
@@ -402,11 +418,11 @@ class OBFS
               break
             case 'w':
             case 'wo':
-              setData(target, key, value)
+              target[key] = setData(target, key, value)
               return true
               break
             case 'rw':
-              setData(target, key, value)
+              target[key] = setData(target, key, value)
               return true
               break
             default:
