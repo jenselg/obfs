@@ -46,7 +46,7 @@ class OBFS
     //= VARIABLES
 
         let getData, setData // FN OBJECT LOGIC
-        let readData, writeData, cloneData, delData // FN FS OPS
+        let readData, writeData, delData // FN FS OPS
         let encryptData, decryptData, encryptKey, decryptKey, encryptionInit, encryptionInstance // FN CRYPTO
         let handler = {} // FN OBJECT TRAPS
         let init // FN INIT
@@ -58,75 +58,46 @@ class OBFS
           if (typeof(child) !== 'symbol' && child !== 'inspect')
           {
 
-          // path property is object notation
-          // use args.path as the base path
-
-          // variables
-          let output, files,
-          childDir, childJs, childData,
-          childObj, childId, childDirId,
-          objectPath, currDir
-
-          // default output
-          output = undefined
-
-          // set paths
-          childId = path.resolve(args.path, ...parent["obfs_name"].split('.'), '.obfs')
-          childDirId = path.resolve(args.path, ...parent["obfs_name"].split('.'), child, '.obfs')
-          childDir = path.resolve(args.path, ...parent["obfs_name"].split('.'), child)
-          childJs = path.resolve(args.path, ...parent["obfs_name"].split('.'), child + '.js')
-          childData = path.resolve(args.path, ...parent["obfs_name"].split('.'), child + '.dat')
-          objectPath = parent["obfs_name"] + '.' + child
-          currDir = path.resolve(args.path, ...parent["obfs_name"].split('.'))
-
-          // filesystem path
-          if (child === 'obfs_path')
-          { if (fs.existsSync(currDir)) { output = currDir } }
-
-          // directory
-          else if (fs.existsSync(childDir))
-          {
-
-            childObj = {}
-            childObj['obfs_path'] = childDir
-            childObj['obfs_name'] = objectPath
-
-            files = fs.readdirSync(childDir, { encoding: this.options["obfs_encoding"] })
-            files.forEach((file) =>
+            let output
+            let data = path.resolve(args.path, ...parent["obfs_name"].split('.'), child)
+            if(fs.existsSync(data))
             {
-              // directory
-              if (fs.lstatSync(path.resolve(childDir, file)).isDirectory() && fs.existsSync(path.resolve(childDir, file, '.obfs')))
-              { childObj[file] = getData(childObj, file) }
+              if (fs.lstatSync(data).isDirectory())
+              {
+                let obj = {}
+                obj["obfs_name"] = parent["obfs_name"] + '.' + child
+                obj["obfs_path"] = path.resolve(args.path, ...parent["obfs_name"].split('.'), child)
+                fs.readdirSync(data, { encoding: this.options["obfs_encoding"] }).forEach((prop) =>
+                {
+                  obj[prop] = getData(obj, prop)
+                })
+                output = new Proxy(obj, handler)
+              }
+              else if (fs.lstatSync(data).isFile())
+              {
+                output = readData(data)
+              }
+            }
+            else if (child.startsWith('obfs_'))
+            {
+              let obfsProp = child.slice(5, child.length)
+              switch (obfsProp)
+              {
+                case 'name':
+                  output = parent["obfs_name"]
+                  break
+                case 'path':
+                  output = path.resolve(args.path, ...parent["obfs_name"].split('.'))
+                  break
+                default:
+              }
+            }
+            else
+            {
+              output = undefined
+            }
 
-              // function
-              else if (file.endsWith('.js'))
-              { childObj[file.split('.')[0]] = readData(path.resolve(childDir, file)) }
-
-              // data
-              else if (file.endsWith('.dat'))
-              { childObj[file.split('.')[0]] = readData(path.resolve(childDir, file)) }
-
-            })
-
-            // return output
-            output = new Proxy(childObj, handler)
-
-          }
-
-          // function
-          else if (fs.existsSync(childJs))
-          { output = readData(childJs) }
-
-          // data
-          else if (fs.existsSync(childData))
-          { output = readData(childData) }
-
-          // path
-          else if (child === 'obfs_name')
-          { output = readData(childId) }
-
-          // return output
-          return output
+            return output
 
           }
         } // END getData
@@ -134,127 +105,34 @@ class OBFS
         setData = (parent, child, value) =>
         { // START setData
 
-          // variables
-          let output,
-          childDir, childJs, childData,
-          childObj, childId, objectPath
+          let output
+          let dataPath = path.resolve(args.path, ...parent["obfs_name"].split('.'), child)
+          let dataContent = value
 
-          // set paths
-          childDir = path.resolve(args.path, ...parent["obfs_name"].split('.'), child)
-          childJs = path.resolve(args.path, ...parent["obfs_name"].split('.'), child + '.js')
-          childData = path.resolve(args.path, ...parent["obfs_name"].split('.'), child + '.dat')
-          childId = path.resolve(args.path, ...parent["obfs_name"].split('.'), '.obfs')
-          objectPath = parent["obfs_name"] + '.' + child
+          if (fs.existsSync(dataPath)) delData(dataPath)
 
-          // BASE VALUE LOGIC // object -> directory
-          if (typeof(value) === 'object' && !Array.isArray(value))
+          if (typeof(dataContent) === 'object' && !Array.isArray(dataContent))
           {
-
-            // delete existing js file
-            if (fs.existsSync(childJs))
-            { fs.unlinkSync(childJs) }
-
-            // delete existing data file
-            if (fs.existsSync(childData))
-            { fs.unlinkSync(childData) }
-
-            // create directory and .obfs
-            if (!fs.existsSync(childDir))
+            fs.mkdirSync(dataPath)
+            let obj = {}
+            obj["obfs_name"] = parent["obfs_name"] + '.' + child
+            obj["obfs_path"] = dataPath
+            Object.keys(dataContent).forEach((prop) =>
             {
-              fs.mkdirSync(childDir)
-              fs.writeFileSync(path.resolve(childDir, '.obfs'), objectPath)
-            }
-
-            // remove current directory and recreate along with .obfs
-            else
-            {
-              delData(childDir)
-              fs.mkdirSync(childDir)
-              fs.writeFileSync(path.resolve(childDir, '.obfs'), objectPath)
-            }
-
-            // iteration vars
-            childObj = {}
-            value["obfs_name"] = objectPath
-            value = cloneData(value)
-            childObj["obfs_name"] = objectPath
-            value["obfs_name"] = objectPath
-
-            // iterate through object keys
-            Object.keys(value).forEach((valKey) =>
-            {
-
-              // object - > directory
-              if (typeof(value[valKey]) === 'object' && !Array.isArray(value[valKey]))
-              {
-                // set to value
-                childObj[valKey] = value[valKey]
-                // recurse
-                setData(value, valKey, value[valKey])
-              }
-
-              // js function; () => {}
-              else if (typeof(value[valKey]) === 'function')
-              {
-                // set to value
-                childObj[valKey] = value[valKey]
-                // write to fs
-                writeData(path.resolve(args.path, ...value["obfs_name"].split('.'), valKey + '.js'), '' + value[valKey])
-              }
-
-              // all other data
-              else if (typeof(value[valKey]) !== 'undefined' && typeof(value[valKey]) !== 'symbol' && !valKey.startsWith('obfs'))
-              {
-                // set to value
-                childObj[valKey] = value[valKey]
-                // write to fs
-                writeData(path.resolve(args.path, ...value["obfs_name"].split('.'), valKey + '.dat'), JSON.stringify(value[valKey]))
-              }
-
+              obj[prop] = setData(obj, prop, dataContent[prop])
             })
-
-            output = new Proxy(childObj, handler)
-
+            output = obj
           }
-
-          // BASE VALUE LOGIC // js function; () => {}
-          else if (typeof(value) === 'function')
+          else if (typeof(dataContent) !== 'undefined' && !dataContent.startsWith('obfs_'))
           {
-
-            // set output
+            writeData(dataPath, dataContent)
             output = value
-            // delete conflicting keys
-            if (fs.existsSync(childData)) { fs.unlinkSync(childData) }
-            else if (fs.existsSync(childDir)) { delData(childDir) }
-            // write to fs
-            writeData(childJs, '' + value)
-
           }
-
-          // BASE VALUE LOGIC // all other data
-          else if (typeof(value) !== 'undefined' && typeof(value) !== 'symbol' && !child.startsWith('obfs'))
+          else
           {
-
-            // set output
-            output = value
-            // delete conflicting keys
-            if (fs.existsSync(childJs)) { fs.unlinkSync(childJs) }
-            else if (fs.existsSync(childDir)) { delData(childDir) }
-            // write to fs
-            writeData(childData, JSON.stringify(value))
-
+            output = undefined
           }
 
-          // BASE VALUE LOGIC // undefined; erase data
-          else if (typeof(value) === 'undefined' || value === null)
-          {
-            if (fs.existsSync(childDir)) { delData(childDir), output = undefined }
-            else if (fs.existsSync(childJs)) { fs.unlinkSync(childJs), output = undefined }
-            else if (fs.existsSync(childData)) { fs.unlinkSync(childData), output = undefined }
-          }
-
-          // return final
-          // return output
           return output
 
         } // END setData
@@ -270,18 +148,14 @@ class OBFS
           {
             try
             {
-              if (dataPath.endsWith('.js')) return new Function('"use strict"; return ' + decryptData(fs.readFileSync(dataPath, this.options["obfs_encoding"])))()
-              else if (dataPath.endsWith('.dat')) return JSON.parse(decryptData(fs.readFileSync(dataPath, this.options["obfs_encoding"])))
-              else return decryptData(fs.readFileSync(dataPath, this.options["obfs_encoding"]))
+              return decryptData(fs.readFileSync(dataPath, this.options["obfs_encoding"]))
             } catch (err) { return undefined }
           }
           else
           {
             try
             {
-              if (dataPath.endsWith('.js')) return new Function('"use strict"; return ' + fs.readFileSync(dataPath, this.options["obfs_encoding"]))()
-              else if (dataPath.endsWith('.dat')) return JSON.parse(fs.readFileSync(dataPath, this.options["obfs_encoding"]))
-              else return fs.readFileSync(dataPath, this.options["obfs_encoding"])
+              return fs.readFileSync(dataPath, this.options["obfs_encoding"])
             } catch (err) { return undefined }
           }
 
@@ -295,37 +169,32 @@ class OBFS
 
         } // END writeData
 
-        cloneData = (object) =>
-        { // START cloneData
-
-          let keys = Object.keys(object)
-          let newObject = {}
-          keys.forEach((key) =>
-          {
-            newObject[key] = object[key]
-          })
-          return newObject
-
-        } // END cloneData
-
         delData = (arg) =>
         { // START delData
 
           if (fs.existsSync(arg))
           {
-
-            fs.readdirSync(arg).forEach((file, index) => {
-              let curPath = path.resolve(arg, file)
-              if (fs.lstatSync(curPath).isDirectory())
-              { // recurse
-                delData(curPath)
-              }
-              else
-              { // delete file
-                fs.unlinkSync(curPath)
-              }
-            })
-            fs.rmdirSync(arg)
+            if (fs.lstatSync(arg).isDirectory())
+            {
+              fs.readdirSync(arg, { encoding: this.options["obfs_encoding"] }).forEach((file) =>
+              {
+                let curPath = path.resolve(arg, file)
+                if (fs.lstatSync(curPath).isDirectory())
+                {
+                  delData(curPath)
+                  fs.rmdirSync(curPath)
+                }
+                else if (fs.lstatSync(curPath).isFile())
+                {
+                  fs.unlinkSync(curPath)
+                }
+              })
+              fs.rmdirSync(arg)
+            }
+            else if (fs.lstatSync(arg).isFile())
+            {
+              fs.unlinkSync(arg)
+            }
           }
 
         } // END delData
@@ -533,11 +402,11 @@ class OBFS
               break
             case 'w':
             case 'wo':
-              target[key] = setData(target, key, value)
+              setData(target, key, value)
               return true
               break
             case 'rw':
-              target[key] = setData(target, key, value)
+              setData(target, key, value)
               return true
               break
             default:
