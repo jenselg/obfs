@@ -1,6 +1,6 @@
 /*
 
-  OBJ.js
+  Obj.js
 
   File-based, object-oriented data store for Node.js
 
@@ -33,11 +33,14 @@
 
 'use strict'
 
+// Node.js Libraries
 const _os = require('os')
 const _fs = require('fs')
 const _path = require('path')
 const _crypto = require('crypto')
 
+
+// Obj.js Code
 class Obj
 {
   constructor (args = {})
@@ -554,5 +557,5 @@ class Obj
   }
 }
 
-// follow the _path...
+// Follow the _path...
 module.exports = Obj
