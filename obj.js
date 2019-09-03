@@ -408,7 +408,6 @@ class Obj
             else if (!key.startsWith('_'))
             {
               writeData(keyPath, value)
-              // target[key] = value
             }
 
           }
@@ -545,10 +544,7 @@ class Obj
         } // END init
 
         // 💊 - take the red pill...
-        if (init())
-        {
-          return new Proxy(this, handler)
-        }
+        if (init()) { return new Proxy(this, handler) }
         // 💊 - take the blue pill...
         else { throw new Error('Failed to start Obj.js instance! Please check your options.') }
 
