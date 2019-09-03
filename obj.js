@@ -143,6 +143,9 @@ class Obj
             let cipher = _crypto.createCipheriv(encryptionInstance.algorithm, new Buffer.from(key), iv)
             let encStr = Buffer.concat([cipher.update(data), cipher.final()]).toString('hex')
             data = iv.toString('hex').substring(0, 16) + encStr + iv.toString('hex').substring(16, 32)
+            iv = undefined
+            cipher = undefined
+            encStr = undefined
           })
           return data
 
@@ -157,6 +160,9 @@ class Obj
             let decipher = _crypto.createDecipheriv(encryptionInstance.algorithm, new Buffer.from(key), iv)
             let encBuffer = new Buffer.from(data.slice(0, -16).substr(16), 'hex')
             data = Buffer.concat([decipher.update(encBuffer), decipher.final()]).toString()
+            iv = undefined
+            decipher = undefined
+            encBuffer = undefined
           })
           return data
 
@@ -305,26 +311,23 @@ class Obj
 
             if (typeof(key) !== 'symbol' && key.startsWith('_')) // special property
             {
-              let objKey = key.slice(1, key.length)
+              let objKey = key
               switch (objKey)
               {
-                case 'name':
+                case '_name':
                   return target["_name"]
                   break
-                case 'path':
-                  return _path.resolve(basePath, ...target["_name"].split('.'))
+                case '_path':
+                  return _path.resolve(basePath, ...target["_name"].split(':'))
                   break
-                case 'keys':
+                case '_keys':
                   let keysArr = []
-                  let targetPath = _path.resolve(basePath, ...target["_name"].split('.'))
+                  let targetPath = _path.resolve(basePath, ...target["_name"].split(':'))
                   _fs.readdirSync(targetPath, { encoding: 'utf8' }).forEach((key) =>
                   {
-                    if (!key.startsWith('.')) keysArr.push(key)
+                    keysArr.push(key)
                   })
                   return keysArr
-                  break
-                case 'exists':
-                  return _fs.existsSync(_path.resolve(basePath, ...target["_name"].split('.')))
                   break
                 default:
                   return undefined
@@ -338,6 +341,7 @@ class Obj
               let obj = {}
               obj["_name"] = target["_name"] + ':' + key
               obj["_path"] = _path.resolve(basePath, ...target["_name"].split(':'), key)
+              obj["_keys"] = []
 
               // key is a file
               if (_fs.existsSync(obj["_path"]) && _fs.lstatSync(obj["_path"]).isFile())
@@ -348,8 +352,6 @@ class Obj
               // key is a directory
               else if (_fs.existsSync(obj["_path"]) && _fs.lstatSync(obj["_path"]).isDirectory())
               {
-                obj["_keys"] = []
-                obj["_exists"] = true
                 _fs.readdirSync(obj["_path"], { encoding: 'utf8' }).forEach((key) =>
                 {
                   obj["_keys"].push(key)
@@ -359,7 +361,6 @@ class Obj
               // key is neither, return object for unlimited recursion
               else
               {
-                obj["_exists"] = false
                 return new Proxy(obj, handler)
               }
             }
