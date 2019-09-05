@@ -51,7 +51,7 @@ class Obj
         let readData, writeData, delData // FN FS OPS
         let encryptData, decryptData, encryptKey, decryptKey, encryptionInit, encryptionInstance // FN CRYPTO
         let handler = {} // FN OBJECT TRAPS
-        let checkPerms // FN PERMISSIONS
+        let checkPerms, alphaNumSort // FNS
         let init // FN INIT
         let basePath // VAL FOR BASEPATH
 
@@ -60,17 +60,28 @@ class Obj
         readData = (dataPath) =>
         { // START readData
           let readContent
-          if (this["_encryption"]) readContent = decryptData(_fs.readFileSync(dataPath, this["_encoding"]))
+          if (this["_encryption"])
+          {
+            try
+            {
+              readContent = decryptData(_fs.readFileSync(dataPath, this["_encoding"]))
+            }
+            catch (err)
+            {
+              readContent = _fs.readFileSync(dataPath, this["_encoding"])
+            }
+          }
           else readContent = _fs.readFileSync(dataPath, this["_encoding"])
 
           if (readContent.startsWith('(') || readContent.startsWith('function'))
           {
-            return new Function('"use strict"; return ' + readContent)()
+            try { return new Function('"use strict"; return ' + readContent)() }
+            catch (err) { return readContent } // return raw on err
           }
           else
           {
             try { return JSON.parse(readContent) }
-            catch (err) { return readContent }
+            catch (err) { return readContent } // return raw on err
           }
 
         } // END readData
@@ -115,7 +126,7 @@ class Obj
 
     //= END - FN FS OPS
 
-    //= START - FN PERMISSIONS
+    //= START - FNS
 
         checkPerms = (ops) =>
         {
@@ -133,7 +144,25 @@ class Obj
           }
         }
 
-    //= END - FN PERMISSIONS
+        alphaNumSort = (a, b) =>
+        {
+          var reA = /[^a-zA-Z]/g;
+          var reN = /[^0-9]/g;
+
+          var aA = a.replace(reA, "");
+          var bA = b.replace(reA, "");
+          if (aA === bA) {
+            var aN = parseInt(a.replace(reN, ""), 10);
+            var bN = parseInt(b.replace(reN, ""), 10);
+            return aN === bN ? 0 : aN > bN ? 1 : -1;
+          }
+          else
+          {
+            return aA > bA ? 1 : -1;
+          }
+        }
+
+    //= END - FNS
 
     //= START - FN CRYPTO
 
@@ -326,11 +355,11 @@ class Obj
                 case '_keys':
                   let keysArr = []
                   let targetPath = _path.resolve(basePath, ...target["_name"].split(':'))
-                  _fs.readdirSync(targetPath, { encoding: 'utf8' }).forEach((key) =>
+                  _fs.readdirSync(targetPath, { encoding: this._encoding }).forEach((key) =>
                   {
                     keysArr.push(key)
                   })
-                  return keysArr
+                  return keysArr.sort(alphaNumSort)
                   break
                 default:
                   return undefined
@@ -355,10 +384,11 @@ class Obj
               // key is a directory
               else if (_fs.existsSync(obj["_path"]) && _fs.lstatSync(obj["_path"]).isDirectory())
               {
-                _fs.readdirSync(obj["_path"], { encoding: 'utf8' }).forEach((key) =>
+                _fs.readdirSync(obj["_path"], { encoding: this._encoding }).forEach((key) =>
                 {
                   obj["_keys"].push(key)
                 })
+                obj["_keys"] = obj["_keys"].sort(alphaNumSort)
                 return new Proxy(obj, handler)
               }
               // key is neither, return object for unlimited recursion
@@ -403,11 +433,13 @@ class Obj
             if (value === undefined || value === null)
             {
               delData(keyPath)
+              if (target._keys.indexOf(key) >= 0) target._keys = target._keys.filter(val => val !== key).sort()
               delete target[key]
             }
             else if (!key.startsWith('_'))
             {
               writeData(keyPath, value)
+              if (target._keys.indexOf(key) === -1) target._keys = target._keys.concat(key).sort()
             }
 
           }
@@ -500,10 +532,10 @@ class Obj
             {
 
               // define payload
-              let encPayload
+              let encPayload = ''
               if (encryptionInstance.key) encPayload += encryptionInstance.key
-              if (encryptionInstance.keyfile) encPayload += encryptionInstance.keyfile
-
+              if (encryptionInstance.keyfile) encPayload +=  encryptionInstance.keyfile
+              encPayload = _crypto.createHash('sha256').update(encPayload).digest().toString('hex')
               // encrypt a non-encrypted instance
               if (!_fs.existsSync(_path.resolve(args.path, args.name, '.secure')))
               {
@@ -535,7 +567,7 @@ class Obj
             this["_keys"] = []
             _fs.readdirSync(_path.resolve(args.path, args.name), { encoding: this["_encoding"] }).forEach((key) =>
             {
-              if (!key.startsWith('.')) this["_keys"].push(key)
+              this["_keys"].push(key)
             })
 
             // down the rabbit hole we go...
