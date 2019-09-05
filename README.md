@@ -58,11 +58,10 @@
 
 
 - permissions options:
-
- - read only: 'r'
- - write only: 'w'
- - read and write: 'rw'
- - defaults to 'rw'
+  - read only: 'r'
+  - write only: 'w'
+  - read and write: 'rw'
+  - defaults to 'rw'
 
 
 - set encryption for obj instance:
@@ -74,24 +73,23 @@
 
 
 - encryption options:
-
- - available algorithms: 'aes256', 'aria256', 'camellia256'
- - key(s) formats:
-   - 'key'
-     - string
-     -single-level encryption
-   - 'a:sequence:of:different:keys'
-     - string
-     - multi-level encryption
-     - recursive
-     - colon-separated values
-   - keyfile
-     - optional
-     - if provided, key property is optional
- - if both key and keyfile are present, both will be used
- - once a data store has been encrypted, you can't start an unencrypted instance on it
- - provided key(s) and/or keyfile must match the key(s) and/or keyfile of an encrypted instance
- - see code for implementation
+  - available algorithms: 'aes256', 'aria256', 'camellia256'
+  - key(s) formats:
+    - 'key'
+        - string
+        - single-level encryption
+    - 'a:sequence:of:different:keys'
+        - string
+        - multi-level encryption
+        - recursive
+        - colon-separated values
+    - keyfile
+        - optional
+        - if provided, key property is optional
+  - if both key and keyfile are present, both will be used
+  - once a data store has been encrypted, you can't start an unencrypted instance on it
+  - provided key(s) and/or keyfile must match the key(s) and/or keyfile of an encrypted instance
+  - see code for implementation
 
 
 ##### Properties:
@@ -157,7 +155,7 @@ https://www.npmjs.com/package/@jenselg/obj.js
 
 ### LICENSE
 
-##### MIT License
+###### MIT License
 
 Copyright (c) 2019 Jensel Gatchalian
 
