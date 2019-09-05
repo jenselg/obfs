@@ -512,7 +512,7 @@ class Obj
             this["_encoding"] = args.encoding ? args.encoding : 'utf8'
 
             // 🐇 - define permissions
-            this["_permissions"] = args.permissions ? args.permissions : 'rw'
+            this["_permissions"] = args.permissions && ['r', 'w', 'rw'].indexOf(args.permissions) >= 0 ? args.permissions : 'rw'
 
             // 🐇 - define encryption
             if (typeof(args.encryption) === 'object' && args.encryption.algorithm)
