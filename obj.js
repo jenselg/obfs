@@ -10,7 +10,7 @@
   MIT License
 
   Copyright (c) 2019 Jensel Gatchalian
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -109,19 +109,17 @@ class Obj
 
         delData = (dir_path) =>
         { // START delData
-          if (_fs.existsSync(dir_path) && _fs.lstatSync(dir_path).isDirectory()) {
-              _fs.readdirSync(dir_path).forEach(function(entry) {
-                  var entry_path = _path.join(dir_path, entry);
-                  if (_fs.lstatSync(entry_path).isDirectory()) {
-                      delData(entry_path);
-                  } else {
-                      _fs.unlinkSync(entry_path);
-                  }
-              });
-              _fs.rmdirSync(dir_path);
-          } else if (_fs.existsSync(dir_path) && _fs.lstatSync(dir_path).isFile()) {
-            _fs.unlinkSync(dir_path)
+          if (_fs.existsSync(dir_path) && _fs.lstatSync(dir_path).isDirectory())
+          {
+              _fs.readdirSync(dir_path).forEach((entry) =>
+              {
+                  let entry_path = _path.join(dir_path, entry)
+                  if (_fs.lstatSync(entry_path).isDirectory()) { delData(entry_path) }
+                  else {  _fs.unlinkSync(entry_path) }
+              })
+              _fs.rmdirSync(dir_path)
           }
+          else if (_fs.existsSync(dir_path) && _fs.lstatSync(dir_path).isFile()) { _fs.unlinkSync(dir_path) }
         } // END delData
 
     //= END - FN FS OPS
@@ -146,19 +144,19 @@ class Obj
 
         alphaNumSort = (a, b) =>
         {
-          var reA = /[^a-zA-Z]/g;
-          var reN = /[^0-9]/g;
-
-          var aA = a.replace(reA, "");
-          var bA = b.replace(reA, "");
-          if (aA === bA) {
-            var aN = parseInt(a.replace(reN, ""), 10);
-            var bN = parseInt(b.replace(reN, ""), 10);
-            return aN === bN ? 0 : aN > bN ? 1 : -1;
+          let reA = /[^a-zA-Z]/g
+          let reN = /[^0-9]/g
+          let aA = a.replace(reA, "")
+          let bA = b.replace(reA, "")
+          if (aA === bA)
+          {
+            let aN = parseInt(a.replace(reN, ""), 10)
+            let bN = parseInt(b.replace(reN, ""), 10)
+            return aN === bN ? 0 : aN > bN ? 1 : -1
           }
           else
           {
-            return aA > bA ? 1 : -1;
+            return aA > bA ? 1 : -1
           }
         }
 

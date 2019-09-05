@@ -9,59 +9,63 @@
 - use Javascript objects and object notation to read / write from the filesystem / datastore
 - symmetric encryption of data using multiple keys
 - read / write permissions for instances
+- pure Node.js, no third-party libraries
+- tested on Linux and MacOS
 
 
 ### INSTALLATION
 
-##### In your project directory:
-
     npm install --save @jenselg/obj.js
-
 
 ### HOW TO USE
 
 ##### Create new instance:
 
-    const Obj = require('@jenselg/obj.js')
-    let obj = new Obj(options)
+- require in your project:
+
+      const Obj = require('@jenselg/obj.js')
+      let obj = new Obj(options)
+
+- options argument is optional, see below
 
 
 ##### Instance options:
 
-- optional
-- options should be an object
+- options should be an object:
 
       { name: 'obj-store', path: '/some/path' }
 
-- name of the obj instance / folder, defaults to 'obj-store'
+- name of the obj instance / folder, defaults to 'obj-store':
 
       options.name = 'string'
 
-- base path where to store obj instance / folder, defaults to user home directory
+- base path where to store obj instance / folder, defaults to user home directory:
 
       options.path = 'string'
 
-- encoding used for data, defaults to 'utf8'
+- encoding used for data, defaults to 'utf8':
 
       options.encoding = 'string'
 
-- set read/write permissions for obj instance
+- set read/write permissions for obj instance:
 
       options.permissions = 'string'
 
+- available permissions:
  - read only: 'r'
  - write only: 'w'
  - read and write: 'rw'
  - defaults to 'rw'
 
 
-- set encryption for obj instance
+- set encryption for obj instance:
 
       options.encryption = {}
       options.encryption.algorithm = 'string'
       options.encryption.key = 'string'
       options.encryption.keyfile = '/path/to/keyfile'
 
+- encryption options:
  - available algorithms: 'aes256', 'aria256', 'camellia256'
  - key(s) formats:
    - 'key'
