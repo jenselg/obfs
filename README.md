@@ -26,6 +26,7 @@
       const Obj = require('@jenselg/obj.js')
       let obj = new Obj(options)
 
+
 - options argument is optional, see below
 
 
@@ -35,23 +36,29 @@
 
       { name: 'obj-store', path: '/some/path' }
 
+
 - name of the obj instance / folder, defaults to 'obj-store':
 
       options.name = 'string'
+
 
 - base path where to store obj instance / folder, defaults to user home directory:
 
       options.path = 'string'
 
+
 - encoding used for data, defaults to 'utf8':
 
       options.encoding = 'string'
+
 
 - set read/write permissions for obj instance:
 
       options.permissions = 'string'
 
-- available permissions:
+
+- permissions options:
+
  - read only: 'r'
  - write only: 'w'
  - read and write: 'rw'
@@ -65,7 +72,9 @@
       options.encryption.key = 'string'
       options.encryption.keyfile = '/path/to/keyfile'
 
+
 - encryption options:
+
  - available algorithms: 'aes256', 'aria256', 'camellia256'
  - key(s) formats:
    - 'key'
@@ -95,6 +104,7 @@
       console.log(obj.one.two.three._path)
       // '/home/username/obj-store/one/two/three'
 
+
 - object / directory relative paths (Obj.js instance) are accessed via the _name property, which returns a string of object name(s) / directory path(s) delimited by colons
 
       const Obj = require('@jenselg/obj.js')
@@ -102,6 +112,7 @@
 
       console.log(obj.one.two.three._name)
       // 'obj-store:one:two:three'
+
 
 - object / directory contents are accessed via the _keys property, which returns an array
 
