@@ -15,7 +15,7 @@
 
 ### INSTALLATION
 
-    npm install --save @jenselg/obj.js
+    npm install --save obj.js
 
 ### HOW TO USE
 
@@ -23,7 +23,7 @@
 
 - require in your project:
 
-      const Obj = require('@jenselg/obj.js')
+      const Obj = require('obj.js')
       let obj = new Obj(options)
 
 
@@ -52,7 +52,12 @@
       options.encoding = 'string'
 
 
-- set read/write permissions for obj instance:
+- boolean for returning functions as a function (true) or as a string (false), defaults to false:
+
+      options.functions = boolean
+
+
+- set read/write permissions for obj instance, defaults to 'rw':
 
       options.permissions = 'string'
 
@@ -61,7 +66,6 @@
   - read only: 'r'
   - write only: 'w'
   - read and write: 'rw'
-  - defaults to 'rw'
 
 
 - set encryption for obj instance:
@@ -150,12 +154,12 @@
 https://github.com/jenselg/Obj.js
 
 ##### NPM:
-https://www.npmjs.com/package/@jenselg/obj.js
+https://www.npmjs.com/package/obj.js
 
 
 ### LICENSE
 
-###### MIT License
+MIT License
 
 Copyright (c) 2019 Jensel Gatchalian
 

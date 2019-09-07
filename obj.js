@@ -5,7 +5,7 @@
   File-based, object-oriented data store for Node.js
 
   Github: https://github.com/jenselg/obj.js
-  NPM: https://www.npmjs.com/package/@jenselg/obj.js
+  NPM: https://www.npmjs.com/package/obj.js
 
   MIT License
 
@@ -60,24 +60,30 @@ class Obj
         readData = (dataPath) =>
         { // START readData
           let readContent
+
+          // encryption
           if (this["_encryption"])
           {
-            try
-            {
-              readContent = decryptData(_fs.readFileSync(dataPath, this["_encoding"]))
-            }
-            catch (err)
-            {
-              readContent = _fs.readFileSync(dataPath, this["_encoding"])
-            }
+            try { readContent = decryptData(_fs.readFileSync(dataPath, this["_encoding"])) }
+            catch (err) { readContent = _fs.readFileSync(dataPath, this["_encoding"]) }
           }
           else readContent = _fs.readFileSync(dataPath, this["_encoding"])
 
+          // parse data
+          // functions
           if (readContent.startsWith('(') || readContent.startsWith('function'))
           {
-            try { return new Function('"use strict"; return ' + readContent)() }
-            catch (err) { return readContent } // return raw on err
+            if (this["_functions"])
+            {
+              try { return new Function('"use strict"; return ' + readContent)() }
+              catch (err) { return readContent } // return raw on err
+            }
+            else
+            {
+              return readContent
+            }
           }
+          // regular data
           else
           {
             try { return JSON.parse(readContent) }
@@ -355,7 +361,7 @@ class Obj
                   let targetPath = _path.resolve(basePath, ...target["_name"].split(':'))
                   _fs.readdirSync(targetPath, { encoding: this._encoding }).forEach((key) =>
                   {
-                    keysArr.push(key)
+                    if (!key.startsWith('.')) keysArr.push(key)
                   })
                   return keysArr.sort(alphaNumSort)
                   break
@@ -491,10 +497,10 @@ class Obj
               }
 
               // 🐇 - create obj identifier
-              if (!_fs.existsSync(_path.resolve(args.path, args.name, '.obj')))
-              {
-                _fs.writeFileSync(_path.resolve(args.path, args.name, '.obj'), args.name)
-              }
+              // if (!_fs.existsSync(_path.resolve(args.path, args.name, '.obj')))
+              // {
+              //   _fs.writeFileSync(_path.resolve(args.path, args.name, '.obj'), args.name)
+              // }
 
             }
             catch (err) { throw new Error('Failed to create instance at specified path and name! Make sure the path is valid and correct filesystem permissions at specified path and name.') }
@@ -511,6 +517,9 @@ class Obj
 
             // 🐇 - define permissions
             this["_permissions"] = args.permissions && ['r', 'w', 'rw'].indexOf(args.permissions) >= 0 ? args.permissions : 'rw'
+
+            // 🐇 - define fn evaluation
+            this["_functions"] = args.functions && typeof(args.functions) === 'boolean' ? args.functions : false
 
             // 🐇 - define encryption
             if (typeof(args.encryption) === 'object' && args.encryption.algorithm)
@@ -565,7 +574,7 @@ class Obj
             this["_keys"] = []
             _fs.readdirSync(_path.resolve(args.path, args.name), { encoding: this["_encoding"] }).forEach((key) =>
             {
-              this["_keys"].push(key)
+              if (!key.startsWith('.')) this["_keys"].push(key)
             })
 
             // down the rabbit hole we go...
