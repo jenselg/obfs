@@ -1,11 +1,11 @@
 /*
 
-  Obj.js
+  OBFS
 
   File-based, object-oriented data store for Node.js
 
-  Github: https://github.com/jenselg/obj.js
-  NPM: https://www.npmjs.com/package/obj.js
+  Github: https://github.com/jenselg/obfs
+  NPM: https://www.npmjs.com/package/obfs
 
   MIT License
 
@@ -40,8 +40,8 @@ const _path = require('path')
 const _crypto = require('crypto')
 
 
-// Obj.js Code
-class Obj
+// OBFS
+class OBFS
 {
   constructor (args = {})
   {
@@ -136,11 +136,11 @@ class Obj
         {
           if (ops === 'get')
           {
-            if (this._permissions === 'w') throw new Error('Obj.js instance is write-only!')
+            if (this._permissions === 'w') throw new Error('OBFS instance is write-only!')
           }
           else if (ops === 'set')
           {
-            if (this._permissions === 'r') throw new Error('Obj.js instance is read-only!')
+            if (this._permissions === 'r') throw new Error('OBFS instance is read-only!')
           }
           else
           {
@@ -452,7 +452,7 @@ class Obj
 
     //= END - FN OBJECT TRAPS
 
-    //= START - OBJ INIT
+    //= START - OBFS INIT
 
       /*
 
@@ -483,24 +483,18 @@ class Obj
                 args.path = _os.homedir()
               }
 
-              // 🐇 - use custom obj name
+              // 🐇 - use custom OBFS name
               if (args.name)
               {
                 if (!_fs.existsSync(_path.resolve(args.path, args.name))) { _fs.mkdirSync(_path.resolve(args.path, args.name)) }
               }
 
-              // 🐇 - use default obj name
+              // 🐇 - use default OBFS name
               else
               {
-                args.name = 'obj-store'
+                args.name = 'obfs'
                 if (!_fs.existsSync(_path.resolve(args.path, args.name))) { _fs.mkdirSync(_path.resolve(args.path, args.name)) }
               }
-
-              // 🐇 - create obj identifier
-              // if (!_fs.existsSync(_path.resolve(args.path, args.name, '.obj')))
-              // {
-              //   _fs.writeFileSync(_path.resolve(args.path, args.name, '.obj'), args.name)
-              // }
 
             }
             catch (err) { throw new Error('Failed to create instance at specified path and name! Make sure the path is valid and correct filesystem permissions at specified path and name.') }
@@ -585,12 +579,12 @@ class Obj
         // 💊 - take the red pill...
         if (init()) { return new Proxy(this, handler) }
         // 💊 - take the blue pill...
-        else { throw new Error('Failed to start Obj.js instance! Please check your options.') }
+        else { throw new Error('Failed to start OBFS instance! Please check your options.') }
 
-    //= END - OBJ INIT
+    //= END - OBFS INIT
 
   }
 }
 
 // Follow the _path...
-module.exports = Obj
+module.exports = OBFS

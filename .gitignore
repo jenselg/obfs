@@ -1,9 +1,5 @@
 .DS_Store
 
-examples/**/data/
-examples/**/obj/
-examples/**/node_modules/
-
 misc/sandbox.js
 misc/sandbox2.js
 

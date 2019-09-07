@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/jenselg/Obj.js/raw/master/misc/obj.js-logo.png" alt="Obj.js-logo" width="300" />
+  <img src="https://github.com/jenselg/obfs/raw/master/misc/obfs-logo.png" alt="obfs-logo" width="300" />
 </p>
 
 <h2 align="center">File-based, object-oriented data store for Node.js</h2>
@@ -15,7 +15,7 @@
 
 ### INSTALLATION
 
-    npm install --save obj.js
+    npm install --save obfs
 
 ### HOW TO USE
 
@@ -23,8 +23,8 @@
 
 - require in your project:
 
-      const Obj = require('obj.js')
-      let obj = new Obj(options)
+      const OBFS = require('obfs')
+      let obfs = new OBFS(options)
 
 
 - options argument is optional, see below
@@ -34,15 +34,15 @@
 
 - options should be an object:
 
-      { name: 'obj-store', path: '/some/path' }
+      { name: 'obfs', path: '/some/path' }
 
 
-- name of the obj instance / folder, defaults to 'obj-store':
+- name of the obfs instance / folder, defaults to 'obfs':
 
       options.name = 'string'
 
 
-- base path where to store obj instance / folder, defaults to user home directory:
+- base path where to store obfs instance / folder, defaults to user home directory:
 
       options.path = 'string'
 
@@ -57,7 +57,7 @@
       options.functions = boolean
 
 
-- set read/write permissions for obj instance, defaults to 'rw':
+- set read/write permissions for obfs instance, defaults to 'rw':
 
       options.permissions = 'string'
 
@@ -68,7 +68,7 @@
   - read and write: 'rw'
 
 
-- set encryption for obj instance:
+- set encryption for obfs instance:
 
       options.encryption = {}
       options.encryption.algorithm = 'string'
@@ -100,28 +100,28 @@
 
 - object / directory absolute paths (filesystem) are accessed via the _path property, which returns a string of the absolute path
 
-      const Obj = require('@jenselg/obj.js')
-      let obj = new Obj()
+      const OBFS = require('obfs')
+      let obfs = new OBFS()
 
-      console.log(obj.one.two.three._path)
-      // '/home/username/obj-store/one/two/three'
+      console.log(obfs.one.two.three._path)
+      // '/home/username/obfs/one/two/three'
 
 
-- object / directory relative paths (Obj.js instance) are accessed via the _name property, which returns a string of object name(s) / directory path(s) delimited by colons
+- object / directory relative paths (OBFS instance) are accessed via the _name property, which returns a string of object name(s) / directory path(s) delimited by colons
 
-      const Obj = require('@jenselg/obj.js')
-      let obj = new Obj()
+      const OBFS = require('obfs')
+      let obfs = new OBFS()
 
-      console.log(obj.one.two.three._name)
-      // 'obj-store:one:two:three'
+      console.log(obfs.one.two.three._name)
+      // 'obfs:one:two:three'
 
 
 - object / directory contents are accessed via the _keys property, which returns an array
 
-      const Obj = require('@jenselg/obj.js')
-      let obj = new Obj()
+      const OBFS = require('obfs')
+      let obfs = new OBFS()
 
-      console.log(obj.one.two.three._keys)
+      console.log(obfs.one.two.three._keys)
       // []
 
 
@@ -139,22 +139,22 @@
 
 ##### Delete / update data:
 
-- set the obj.key to undefined, null, or set to other data
+- set the obfs.key to undefined, null, or set to other data
 
-      obj.key = undefined
+      obfs.key = undefined
       // folders / files deleted from filesystem, and returns undefined
 
-      obj.key = 'data'
-      // replaces value of obj.key with 'data'
+      obfs.key = 'data'
+      // replaces value of obfs.key with 'data'
 
 
 ### LINKS
 
 ##### Github:
-https://github.com/jenselg/Obj.js
+https://github.com/jenselg/obfs
 
 ##### NPM:
-https://www.npmjs.com/package/obj.js
+https://www.npmjs.com/package/obfs
 
 
 ### LICENSE
