@@ -98,32 +98,40 @@
 
 ##### Properties:
 
-- object / directory absolute paths (filesystem) are accessed via the _path property, which returns a string of the absolute path
+- object / directory absolute paths (filesystem) are accessed via the 'obfs:path' property, which returns a string of the absolute path
 
       const OBFS = require('obfs')
       let obfs = new OBFS()
 
-      console.log(obfs.one.two.three._path)
+      console.log(obfs.one.two.three['obfs:path'])
       // '/home/username/obfs/one/two/three'
 
 
-- object / directory relative paths (OBFS instance) are accessed via the _name property, which returns a string of object name(s) / directory path(s) delimited by colons
+- object / directory relative paths (OBFS instance) are accessed via the 'obfs:name' property, which returns a string of object name(s) / directory path(s) delimited by colons
 
       const OBFS = require('obfs')
       let obfs = new OBFS()
 
-      console.log(obfs.one.two.three._name)
+      console.log(obfs.one.two.three['obfs:name'])
       // 'obfs:one:two:three'
 
 
-- object / directory contents are accessed via the _keys property, which returns an array
+- object / directory contents are accessed via the 'obfs:keys' property, which returns an array
 
       const OBFS = require('obfs')
       let obfs = new OBFS()
 
-      console.log(obfs.one.two.three._keys)
+      console.log(obfs.one.two.three['obfs:keys'])
       // []
 
+
+- object / directory timestamp is accessed via the 'obfs:timestamp' property
+
+      const OBFS = require('obfs')
+      let obfs = new OBFS()
+
+      console.log(obfs.one.two.three['obfs:timestamp'])
+      // 0000-00-00T00:00:00.000Z
 
 ##### Set data:
 

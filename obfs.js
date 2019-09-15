@@ -65,13 +65,13 @@ class OBFS
           if (this["obfs:encryption"])
           {
             try { readContent = decryptData(_fs.readFileSync(dataPath, this["obfs:encoding"])) }
-            catch (err) { readContent = _fs.readFileSync(dataPath, this["obfs:encoding"]) }
+            catch (err) { readContent = undefined }
           }
           else readContent = _fs.readFileSync(dataPath, this["obfs:encoding"])
 
           // parse data
           // functions
-          if (readContent.startsWith('(') || readContent.startsWith('function'))
+          if (readContent && (readContent.startsWith('(') || readContent.startsWith('function')))
           {
             if (this["obfs:functions"])
             {
@@ -84,10 +84,14 @@ class OBFS
             }
           }
           // regular data
-          else
+          else if (readContent)
           {
             try { return JSON.parse(readContent) }
             catch (err) { return readContent } // return raw on err
+          }
+          else
+          {
+            return undefined
           }
 
         } // END readData
@@ -365,7 +369,7 @@ class OBFS
                     {
                       if (!key.startsWith('.')) keysArr.push(key)
                     })
-                  } catch (err) { keysArr.push(undefined) }
+                  } catch (err) {}
                   return keysArr.sort(alphaNumSort)
                   break
                 case 'obfs:timestamp':
@@ -409,7 +413,6 @@ class OBFS
               // key is neither, return object for unlimited recursion
               else
               {
-                obj["obfs:keys"].push(undefined)
                 return new Proxy(obj, handler)
               }
             }
@@ -453,7 +456,7 @@ class OBFS
               if (target["obfs:keys"].indexOf(key) >= 0) target["obfs:keys"] = target["obfs:keys"].filter(val => val !== key).sort(alphaNumSort)
               delete target[key]
             }
-            else if (!key.startsWith('_'))
+            else if (!key.startsWith('obfs:'))
             {
               writeData(keyPath, value)
               if (target["obfs:keys"].indexOf(key) === -1) target["obfs:keys"] = target["obfs:keys"].concat(key).sort(alphaNumSort)
@@ -564,12 +567,7 @@ class OBFS
               // check if provided encryption keys match with the encrypted instance
               else
               {
-                try
-                {
-                  let decPayload = decryptData(_fs.readFileSync(_path.resolve(args.path, args.name, '.secure'), this["obfs:encoding"]))
-                  if (encPayload !== decPayload) throw new Error('Encrypted instance key(s) and/or algorithm mismatch!')
-                  else decPayload = undefined // clear from memory
-                }
+                try { decryptData(_fs.readFileSync(_path.resolve(args.path, args.name, '.secure'), this["obfs:encoding"])) }
                 catch (err) { throw new Error('Encrypted instance key(s) and/or algorithm mismatch!') }
               }
 
