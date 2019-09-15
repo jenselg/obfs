@@ -104,7 +104,7 @@ class OBFS
             _fs.mkdirSync(dataPath)
             Object.keys(dataContent).forEach((content) =>
             {
-              if (!content.startsWith('_')) writeData(_path.resolve(dataPath, content), dataContent[content])
+              if (!content.startsWith('obfs:')) writeData(_path.resolve(dataPath, content), dataContent[content])
             })
           }
           else if (typeof(dataContent) !== 'undefined')
@@ -375,7 +375,7 @@ class OBFS
                 case 'obfs:timestamp':
                   let ts
                   try { ts = _fs.statSync(targetPath).mtime }
-                  catch (err) { ts = undefined }
+                  catch (err) { ts = null }
                   return ts
                   break
                 default:
@@ -391,7 +391,7 @@ class OBFS
               obj["obfs:name"] = target["obfs:name"] + ':' + key
               obj["obfs:path"] = _path.resolve(basePath, ...target["obfs:name"].split(':'), key)
               obj["obfs:keys"] = []
-              obj["obfs:timestamp"] = undefined
+              obj["obfs:timestamp"] = null
 
               // key is a file
               if (_fs.existsSync(obj["obfs:path"]) && _fs.lstatSync(obj["obfs:path"]).isFile())
