@@ -1,26 +1,18 @@
 /*
-
   OBFS
-
   File-based, object-oriented data store for Node.js
-
   Github: https://github.com/jenselg/obfs
   NPM: https://www.npmjs.com/package/obfs
-
   MIT License
-
   Copyright (c) 2019 Jensel Gatchalian <jensel.gatchalian@gmail.com>
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,39 +20,29 @@
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
-
 */
-
 'use strict'
-
 // Node.js Libraries
 const _os = require('os')
 const _fs = require('fs')
 const _path = require('path')
 const _crypto = require('crypto')
-
-
 // OBFS
 class OBFS
 {
   constructor (args = {})
   {
-
     //= VARIABLES
-
         let readData, writeData, delData // FN FS OPS
         let encryptData, decryptData, encryptKey, decryptKey, encryptionInit, encryptionInstance // FN CRYPTO
         let handler = {} // FN OBJECT TRAPS
         let checkPerms, alphaNumSort // FNS
         let init // FN INIT
         let basePath // VAL FOR BASEPATH
-
     //= START - FN FS OPS
-
         readData = (dataPath) =>
         { // START readData
           let readContent
-
           // encryption
           if (this["obfs:encryption"])
           {
@@ -68,7 +50,6 @@ class OBFS
             catch (err) { readContent = undefined }
           }
           else readContent = _fs.readFileSync(dataPath, this["obfs:encoding"])
-
           // parse data
           // functions
           if (readContent && (readContent.startsWith('(') || readContent.startsWith('function')))
@@ -93,12 +74,9 @@ class OBFS
           {
             return undefined
           }
-
         } // END readData
-
         writeData = (dataPath, dataContent) =>
         { // START writeData
-
           if (typeof(dataContent) === 'object' && !Array.isArray(dataContent))
           {
             _fs.mkdirSync(dataPath)
@@ -114,9 +92,7 @@ class OBFS
             if (this["obfs:encryption"]) dataContent = encryptData(dataContent)
             _fs.writeFileSync(dataPath, dataContent)
           }
-
         } // END writeData
-
         delData = (dir_path) =>
         { // START delData
           if (_fs.existsSync(dir_path) && _fs.lstatSync(dir_path).isDirectory())
@@ -131,11 +107,8 @@ class OBFS
           }
           else if (_fs.existsSync(dir_path) && _fs.lstatSync(dir_path).isFile()) { _fs.unlinkSync(dir_path) }
         } // END delData
-
     //= END - FN FS OPS
-
     //= START - FNS
-
         checkPerms = (ops) =>
         {
           if (ops === 'get')
@@ -151,7 +124,6 @@ class OBFS
             throw new Error('Called checkPerms without an argument!')
           }
         }
-
         alphaNumSort = (a, b) =>
         {
           let reA = /[^a-zA-Z]/g
@@ -169,14 +141,96 @@ class OBFS
             return aA > bA ? 1 : -1
           }
         }
+        // Search metadata only: never read/decrypt files or follow symlinks.
+        const normalizeSearch = (value) => String(value)
+          .normalize('NFKD').toLowerCase()
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, ' ').trim()
+
+        const fuzzyScore = (query, value) =>
+        {
+          if (!query || !value) return 0
+          if (query === value) return 1
+          if (value.startsWith(query)) return 0.95
+          if (value.includes(query)) return 0.9
+          const terms = query.split(/\s+/)
+          const matched = terms.filter(term => value.includes(term)).length
+          if (matched === terms.length) return 0.85
+          let qi = 0
+          const compactQuery = query.replace(/ /g, '')
+          for (const char of value.replace(/ /g, ''))
+          {
+            if (char === compactQuery[qi]) qi++
+          }
+          if (qi === compactQuery.length) return 0.5
+          return matched / terms.length * 0.5
+        }
+
+        // A single child name, as in node[key]; do not allow scope escapes.
+        const hasChild = (targetPath, key) =>
+        {
+          if (typeof key !== 'string' && typeof key !== 'number')
+            throw new TypeError('obfs:has expects a child name')
+          key = String(key)
+          if (!key || key === '.' || key === '..' || /[\\/:]/.test(key) || key.includes('\0'))
+            throw new TypeError('obfs:has expects a single child name')
+          return _fs.existsSync(_path.join(targetPath, key))
+        }
+
+        const searchDirectories = (targetPath, query, options = {}) =>
+        {
+          if (typeof query !== 'string') throw new TypeError('obfs:search expects a string query')
+          if (!options || typeof options !== 'object' || Array.isArray(options))
+            throw new TypeError('obfs:search expects an options object')
+          const recursive = options.recursive === undefined ? true : options.recursive
+          const minScore = options.minScore === undefined ? 0.5 : options.minScore
+          const limit = options.limit === undefined ? Infinity : options.limit
+          if (typeof recursive !== 'boolean') throw new TypeError('recursive must be boolean')
+          if (typeof minScore !== 'number' || !Number.isFinite(minScore) || minScore < 0 || minScore > 1)
+            throw new RangeError('minScore must be between 0 and 1')
+          if (limit !== Infinity && (!Number.isInteger(limit) || limit < 0))
+            throw new RangeError('limit must be a nonnegative integer or Infinity')
+          query = normalizeSearch(query)
+          if (!query || limit === 0) return []
+          const results = []
+          const pending = [{ absolute: targetPath, relative: '' }]
+          while (pending.length)
+          {
+            const current = pending.pop()
+            let entries
+            try
+            {
+              if (!_fs.lstatSync(current.absolute).isDirectory()) continue
+              entries = _fs.readdirSync(current.absolute)
+            }
+            catch (err)
+            {
+              if (err.code === 'ENOENT' || err.code === 'ENOTDIR') continue
+              throw err
+            }
+            for (const name of entries)
+            {
+              if (name.startsWith('.')) continue
+              const absolute = _path.join(current.absolute, name)
+              let stat
+              try { stat = _fs.lstatSync(absolute) }
+              catch (err) { if (err.code === 'ENOENT') continue; throw err }
+              if (!stat.isDirectory()) continue
+              const relative = current.relative ? current.relative + '/' + name : name
+              const score = Math.max(fuzzyScore(query, normalizeSearch(name)),
+                fuzzyScore(query, normalizeSearch(relative)))
+              if (score > 0 && score >= minScore) results.push({ path: relative, score })
+              if (recursive) pending.push({ absolute, relative })
+            }
+          }
+          results.sort((a, b) => b.score - a.score || (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
+          return results.slice(0, limit)
+        }
 
     //= END - FNS
-
     //= START - FN CRYPTO
-
         encryptData = (data) =>
         { // START encryptData
-
           encryptKey(encryptionInstance.key, encryptionInstance.keyfile, encryptionInstance.keyLength).forEach((key) =>
           {
             let iv = _crypto.randomBytes(16)
@@ -188,12 +242,9 @@ class OBFS
             encStr = undefined
           })
           return data
-
         } // END encryptData
-
         decryptData = (data) =>
         { // START decryptData
-
           decryptKey(encryptionInstance.key, encryptionInstance.keyfile, encryptionInstance.keyLength).forEach((key) =>
           {
             let iv = new Buffer.from(data.slice(0, 16) + data.slice(-16, data.length), 'hex')
@@ -205,26 +256,20 @@ class OBFS
             encBuffer = undefined
           })
           return data
-
         } // END decryptData
-
         encryptKey = (key, keyfile, length) =>
         { // START encryptKey
-
           let keyArr
-
           if (key && keyfile)
           {
             keyArr = key.split(':').map((val) =>
             {
               switch (length)
               {
-
                 // 256 bit algos
                 case 32:
                   return _crypto.createHash('sha256').update(val + keyfile + val).digest()
                   break
-
                 default:
                   // return nothing
               }
@@ -236,12 +281,10 @@ class OBFS
             {
               switch (length)
               {
-
                 // 256 bit algos
                 case 32:
                   return _crypto.createHash('sha256').update(val).digest()
                   break
-
                 default:
                   // return nothing
               }
@@ -251,28 +294,21 @@ class OBFS
           {
             keyArr = [_crypto.createHash('sha256').update(keyfile).digest()]
           }
-
           return keyArr
-
         } // END encryptKey
-
         decryptKey = (key, keyfile, length) =>
         { // START decryptKey
-
           let keyArr
-
           if (key && keyfile)
           {
             keyArr = key.split(':').map((val) =>
             {
               switch (length)
               {
-
                 // 256 bit algos
                 case 32:
                   return _crypto.createHash('sha256').update(val + keyfile + val).digest()
                   break
-
                 default:
                   // return nothing
               }
@@ -284,12 +320,10 @@ class OBFS
             {
               switch (length)
               {
-
                 // 256 bit algos
                 case 32:
                   return _crypto.createHash('sha256').update(val).digest()
                   break
-
                 default:
                   // return nothing
               }
@@ -299,24 +333,18 @@ class OBFS
           {
             keyArr = [_crypto.createHash('sha256').update(keyfile).digest()]
           }
-
           return keyArr.reverse()
-
         } // END decryptKey
-
         encryptionInit = () =>
         { // START encryptionInit
-
           encryptionInstance = {}
           encryptionInstance.algorithm = args.encryption.algorithm
           encryptionInstance.key = args.encryption.key ? args.encryption.key : undefined
           encryptionInstance.keyfile = args.encryption.keyfile ? _fs.readFileSync(_path.resolve(args.encryption.keyfile), this["obfs:encoding"]).split('\n').filter(Boolean).join('') : undefined
           encryptionInstance.valid = false
-
           // accepted algos and assign key length
           switch (encryptionInstance.algorithm)
           {
-
             // 256 bit algos
             case 'aes256':
             case 'aria256':
@@ -327,28 +355,19 @@ class OBFS
                 encryptionInstance.valid = true
               }
               break
-
             // invalid algo
             default:
               throw new Error('Invalid encryption algorithm!') // silent fail
-
           }
-
           // return status
           return encryptionInstance.valid
-
         } // END encryptionInit
-
     //= END - FN CRYPTO
-
     //= START - FN OBJECT TRAPS
-
         handler.get = (target, key) =>
         { // START handler.get
-
           if (typeof(target) === 'object' && !Array.isArray(target)) // check if target is an actual object
           {
-
             if (typeof(key) !== 'symbol' && key.startsWith('obfs:')) // special property
             {
               let objKey = key
@@ -361,7 +380,18 @@ class OBFS
                 case 'obfs:path':
                   return targetPath
                   break
-                case 'obfs:keys':
+                // Boolean metadata helpers do not read file contents.
+              case 'obfs:exists':
+                return _fs.existsSync(targetPath)
+              case 'obfs:has':
+                return (key) => hasChild(targetPath, key)
+              case 'obfs:search':
+                return (query, options) =>
+                {
+                  checkPerms('get')
+                  return searchDirectories(targetPath, query, options)
+                }
+              case 'obfs:keys':
                   let keysArr = []
                   try
                   {
@@ -385,14 +415,12 @@ class OBFS
             else if (typeof(key) !== 'symbol') // regular get
             {
               if (typeof(key) === 'number') key = key.toString() // convert to string because invalid key/JSON
-
               // instance object
               let obj = {}
               obj["obfs:name"] = target["obfs:name"] + ':' + key
               obj["obfs:path"] = _path.resolve(basePath, ...target["obfs:name"].split(':'), key)
               obj["obfs:keys"] = []
               obj["obfs:timestamp"] = null
-
               // key is a file
               if (_fs.existsSync(obj["obfs:path"]) && _fs.lstatSync(obj["obfs:path"]).isFile())
               {
@@ -416,20 +444,14 @@ class OBFS
                 return new Proxy(obj, handler)
               }
             }
-
           }
-
         } // END handler.get
-
         handler.set = (target, key, value) =>
         { // START handler.set
-
           // if target is an actual object
           if (typeof(target) === 'object' && !Array.isArray(target))
           {
-
             checkPerms('set') // check permissions
-
             // create folders if they dont exist
             let curPath = _path.resolve(basePath)
             target["obfs:name"].split(':').forEach((pathName) =>
@@ -443,13 +465,10 @@ class OBFS
                 _fs.mkdirSync(curPath)
               }
             })
-
             // define keypath
             let keyPath = _path.resolve(curPath, key)
-
             // delete existing
             if (_fs.existsSync(keyPath)) delData(keyPath)
-
             if (value === undefined || value === null)
             {
               delData(keyPath)
@@ -461,17 +480,11 @@ class OBFS
               writeData(keyPath, value)
               if (target["obfs:keys"].indexOf(key) === -1) target["obfs:keys"] = target["obfs:keys"].concat(key).sort(alphaNumSort)
             }
-
           }
-
         } // END handler.set
-
     //= END - FN OBJECT TRAPS
-
     //= START - OBFS INIT
-
       /*
-
         OPTIONS:
         args.path = ''// string
         args.name = ''// string
@@ -479,59 +492,45 @@ class OBFS
         args.permissions = ''// string
         args.functions = boolean
         args.encryption = { algorithm: '', keys: ':::...', keyfile: '/path/to/key' } // object
-
       */
-
         init = () =>
         { // START init
-
             try { // catch errors for instance creation at specified path and name
-
               // 🐇 - use custom path
               if (args.path)
               {
                 args.path = _path.resolve(args.path)
                 if (!_fs.existsSync(args.path)) { _fs.mkdirSync(args.path) }
               }
-
               // 🐇 - use home path
               else
               {
                 args.path = _os.homedir()
               }
-
               // 🐇 - use custom OBFS name
               if (args.name)
               {
                 if (!_fs.existsSync(_path.resolve(args.path, args.name))) { _fs.mkdirSync(_path.resolve(args.path, args.name)) }
               }
-
               // 🐇 - use default OBFS name
               else
               {
                 args.name = 'obfs'
                 if (!_fs.existsSync(_path.resolve(args.path, args.name))) { _fs.mkdirSync(_path.resolve(args.path, args.name)) }
               }
-
             }
             catch (err) { throw new Error('Failed to create instance at specified path and name! Make sure the path is valid and correct filesystem permissions at specified path and name.') }
-
             // 🐇 - define relative path
             this["obfs:name"] = args.name
-
             // 🐇 - define fspath
             this["obfs:path"] = _path.resolve(args.path, args.name)
             basePath = _path.resolve(args.path)
-
             // 🐇 - define encoding
             this["obfs:encoding"] = args.encoding ? args.encoding : 'utf8'
-
             // 🐇 - define permissions
             this["obfs:permissions"] = args.permissions && ['r', 'w', 'rw'].indexOf(args.permissions) >= 0 ? args.permissions : 'rw'
-
             // 🐇 - define fn evaluation
             this["obfs:functions"] = args.functions && typeof(args.functions) === 'boolean' ? args.functions : false
-
             // 🐇 - define encryption
             if (typeof(args.encryption) === 'object' && args.encryption.algorithm)
             {
@@ -548,11 +547,9 @@ class OBFS
             {
               this["obfs:encryption"] = false
             }
-
             // 🐇 - check instance encryption
             if (this["obfs:encryption"]) // encrypted instance
             {
-
               // define payload
               let encPayload = ''
               if (encryptionInstance.key) encPayload += encryptionInstance.key
@@ -570,7 +567,6 @@ class OBFS
                 try { decryptData(_fs.readFileSync(_path.resolve(args.path, args.name, '.secure'), this["obfs:encoding"])) }
                 catch (err) { throw new Error('Encrypted instance key(s) and/or algorithm mismatch!') }
               }
-
             }
             else // unencrypted instance
             {
@@ -580,29 +576,21 @@ class OBFS
                 throw new Error('Cannot start unencrypted instance on an encrypted data store!')
               }
             }
-
             this["obfs:keys"] = []
             _fs.readdirSync(_path.resolve(args.path, args.name), { encoding: this["obfs:encoding"] }).forEach((key) =>
             {
               if (!key.startsWith('.')) this["obfs:keys"].push(key)
             })
-
             this["obfs:timestamp"] = _fs.statSync(this["obfs:path"]).mtime
-
             // down the rabbit hole we go...
             return true
-
         } // END init
-
         // 💊 - take the red pill...
         if (init()) { return new Proxy(this, handler) }
         // 💊 - take the blue pill...
         else { return undefined }
-
     //= END - OBFS INIT
-
   }
 }
-
 // Follow the _path...
 module.exports = OBFS
