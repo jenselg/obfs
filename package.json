@@ -1,7 +1,7 @@
 {
   "name": "obfs",
   "description": "File-based, object-oriented data store for Node.js",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "author": "Jensel Gatchalian <jensel.gatchalian@gmail.com>",
   "main": "./obfs.js",
   "types": "./index.d.ts",
@@ -25,8 +25,5 @@
     "aria",
     "camellia",
     "fuzzy search"
-  ],
-  "devDependencies": {
-    "@types/node": "^26.6.4"
-  }
+  ]
 }
