@@ -7,8 +7,8 @@ declare class OBFS {
   'obfs:path': string
   'obfs:keys': string[]
   'obfs:timestamp': Date | null
-
   'obfs:exists': boolean
+
   'obfs:has': (name: string) => boolean
 
   'obfs:search': (
@@ -18,6 +18,30 @@ declare class OBFS {
 }
 
 declare namespace OBFS {
+  type Encoding =
+    | 'ascii'
+    | 'utf8'
+    | 'utf-8'
+    | 'utf16le'
+    | 'utf-16le'
+    | 'ucs2'
+    | 'ucs-2'
+    | 'base64'
+    | 'base64url'
+    | 'latin1'
+    | 'binary'
+    | 'hex'
+
+  type Permissions =
+    | 'r'
+    | 'w'
+    | 'rw'
+
+  type EncryptionAlgorithm =
+    | 'aes256'
+    | 'aria256'
+    | 'camellia256'
+
   interface SearchOptions {
     recursive?: boolean
     minScore?: number
@@ -29,18 +53,19 @@ declare namespace OBFS {
     score: number
   }
 
+  interface EncryptionOptions {
+    algorithm: EncryptionAlgorithm
+    key?: string
+    keyfile?: string
+  }
+
   interface Options {
     path?: string
     name?: string
-    encoding?: BufferEncoding
-    permissions?: 'r' | 'w' | 'rw'
+    encoding?: Encoding
+    permissions?: Permissions
     functions?: boolean
-
-    encryption?: {
-      algorithm: 'aes256' | 'aria256' | 'camellia256'
-      key?: string
-      keyfile?: string
-    }
+    encryption?: EncryptionOptions
   }
 }
 
