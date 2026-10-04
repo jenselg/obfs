@@ -1,7 +1,7 @@
 {
   "name": "obfs",
   "description": "File-based, object-oriented data store for Node.js",
-  "version": "v0.2.6",
+  "version": "v0.2.7",
   "author": "Jensel Gatchalian <jensel.gatchalian@gmail.com>",
   "main": "./obfs.js",
   "repository": "github:jenselg/obfs",
@@ -19,6 +19,7 @@
     "data encryption",
     "aes",
     "aria",
-    "camellia"
+    "camellia",
+    "fuzzy search"
   ]
 }
