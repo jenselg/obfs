@@ -1,29 +1,6 @@
-export interface OBFSSearchOptions {
-  recursive?: boolean
-  minScore?: number
-  limit?: number
-}
+declare class OBFS {
+  constructor(options?: OBFS.Options)
 
-export interface OBFSSearchResult {
-  path: string
-  score: number
-}
-
-export interface OBFSOptions {
-  path?: string
-  name?: string
-  encoding?: BufferEncoding
-  permissions?: 'r' | 'w' | 'rw'
-  functions?: boolean
-
-  encryption?: {
-    algorithm: 'aes256' | 'aria256' | 'camellia256'
-    key?: string
-    keyfile?: string
-  }
-}
-
-export interface OBFSNode {
   [key: string]: any
 
   'obfs:name': string
@@ -36,14 +13,35 @@ export interface OBFSNode {
 
   'obfs:search': (
     query: string,
-    options?: OBFSSearchOptions
-  ) => OBFSSearchResult[]
+    options?: OBFS.SearchOptions
+  ) => OBFS.SearchResult[]
 }
 
-declare class OBFS {
-  constructor(options?: OBFSOptions)
+declare namespace OBFS {
+  interface SearchOptions {
+    recursive?: boolean
+    minScore?: number
+    limit?: number
+  }
 
-  [key: string]: any
+  interface SearchResult {
+    path: string
+    score: number
+  }
+
+  interface Options {
+    path?: string
+    name?: string
+    encoding?: BufferEncoding
+    permissions?: 'r' | 'w' | 'rw'
+    functions?: boolean
+
+    encryption?: {
+      algorithm: 'aes256' | 'aria256' | 'camellia256'
+      key?: string
+      keyfile?: string
+    }
+  }
 }
 
 export = OBFS
