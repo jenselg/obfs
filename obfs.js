@@ -481,6 +481,8 @@ class OBFS
               if (target["obfs:keys"].indexOf(key) === -1) target["obfs:keys"] = target["obfs:keys"].concat(key).sort(alphaNumSort)
             }
           }
+          // a Proxy set trap must return true, otherwise assignment throws a TypeError in strict mode
+          return true
         } // END handler.set
     //= END - FN OBJECT TRAPS
     //= START - OBFS INIT
